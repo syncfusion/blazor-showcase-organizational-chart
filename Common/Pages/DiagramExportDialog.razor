@@ -1,0 +1,172 @@
+﻿@using Syncfusion.Blazor.Popups
+@using Syncfusion.Blazor.DropDowns
+@using Syncfusion.Blazor.Diagram
+@using Syncfusion.Blazor.Buttons
+
+@inject IJSRuntime jsRuntime
+@namespace OrganizationalChart
+
+<SfDialog @ref="@ExportDialog" @bind-Visible="@exportDialogVisible" AllowDragging="true" Width="400px" ShowCloseIcon="true">
+    <DialogEvents OnOpen="OnDialogOpening"></DialogEvents>
+    <DialogTemplates>
+        <Header>Export Diagram</Header>
+        <Content>
+            <div id="exportDialogContent">
+                <div class="row">
+                    <div class="row"> File Name </div> <div class="row db-dialog-child-prop-row">
+                        <input type="text" id="exportfileName" value="@diagramfileName" @onchange="@fileNameChangeHandler">
+                    </div>
+                </div>
+                <div class="row db-dialog-prop-row">
+                    <div class="col-xs-6 db-col-left">
+                        <div class="row"> Format </div>
+                        <div class="row db-dialog-child-prop-row">
+                            <SfDropDownList ID="exportFormat" TValue="Formats" TItem="string" Placeholder="JPG" @bind-Value="@currentFormatValue" DataSource="@formatValues">
+
+                            </SfDropDownList>
+                        </div>
+                    </div>
+                    <div class="col-xs-6 db-col-right">
+                        <div class="row"> Region </div> <div class="row db-dialog-child-prop-row">
+                            <SfDropDownList ID="exportRegion" TValue="Regions" TItem="string" Placeholder="Content" @bind-Value="@currentRegionValue" DataSource="@regionValues">
+
+                            </SfDropDownList>
+                        </div>
+                    </div>
+                </div>
+                 <div class="row db-dialog-prop-row" style="margin-top: 16px">
+                    <SfCheckBox ID="exportMultiplePage" TChecked="bool" Label="Scale to fit entire page to single page" Checked="@IsMultiplePageExport" ValueChange="@MultiplePageExport">
+                    </SfCheckBox>
+                </div>
+            </div>
+        </Content>
+    </DialogTemplates>
+    <DialogAnimationSettings Effect="@DialogEffect.None"></DialogAnimationSettings>
+    <DialogButtons>
+        <DialogButton OnClick="@ExportHandler" Content="Export" CssClass="e-flat e-db-primary" IsPrimary="true">
+        </DialogButton>
+        <DialogButton OnClick="@CloseDialogHandler" Content="Cancel" CssClass="e-flat">
+        </DialogButton>
+    </DialogButtons>
+</SfDialog>
+@code {
+    /// <summary>
+    /// The available region values for exporting the diagram.
+    /// </summary>
+    private IEnumerable<string> regionValues = Enum.GetNames(typeof(Regions));
+    /// <summary>
+    /// The available format values for exporting the diagram.
+    /// </summary>
+    private IEnumerable<string> formatValues = Enum.GetNames(typeof(Formats));
+    /// <summary>
+    /// Gets or sets the current format value for exporting the diagram. Default value is JPEG.
+    /// </summary>
+    private Formats currentFormatValue { get; set; } = Formats.JPEG;
+    /// <summary>
+    /// Gets or sets the current region value for viewport. Default value is PageSettings.
+    /// </summary>
+    private Regions currentRegionValue { get; set; } = Regions.PageSettings;
+    /// <summary>
+    /// Indicates whether the export dialog is visible or not. Default value is false.
+    /// </summary>
+    private bool exportDialogVisible = false;
+    /// <summary>
+    /// The filename of the diagram. Default value is "Untitled Diagram".
+    /// </summary>
+    private string diagramfileName = "Untitled Diagram";
+    //// <summary>
+    /// Gets a value indicating whether the diagram spans multiple pages when exported.
+    /// </summary>
+    bool IsMultiplePageExport = false;
+    /// <summary>
+    /// Reference to the DiagramMenuBar
+    /// </summary>
+    internal DiagramMenuBar Parent;
+    /// <summary>
+    /// Reference to the SfDialog
+    /// </summary>
+    public SfDialog ExportDialog;
+
+    /// <summary>
+    /// This method is used to change the file name when exporting a diagram.
+    /// </summary>
+    private void fileNameChangeHandler(ChangeEventArgs args)
+    {
+        diagramfileName = args.Value.ToString();
+    }
+    /// <summary>
+    /// This method is used to enable the multiple page options.
+    /// </summary>
+    private void MultiplePageExport(Syncfusion.Blazor.Buttons.ChangeEventArgs<bool> args)
+    {
+        IsMultiplePageExport = args.Checked;
+    }
+    /// <summary>
+    /// Gets or sets the event callback that will be invoked when the suggestions popup before it opens
+    /// </summary>
+    private async Task OnDialogOpening(Syncfusion.Blazor.Popups.BeforeOpenEventArgs args)
+    {
+        diagramfileName = await jsRuntime.InvokeAsync<string>("getDiagramFileName", "export");
+    }
+    /// <summary>
+    /// This method is used Exports the diagram to an PNG/SVG/PDF/JPEG/ file.
+    /// </summary>
+    private async Task ExportHandler()
+    {
+        DiagramRect pageBounds = Parent.Parent.DiagramContent.Diagram.GetPageBounds();
+        DiagramExportSettings options = new DiagramExportSettings()
+        { 
+                FitToPage = IsMultiplePageExport,
+            ClipBounds = new DiagramRect(){X = 0, Y = 0, Height = 0, Width = 0},
+            Region = (DiagramPrintExportRegion)Enum.Parse(typeof(DiagramPrintExportRegion), currentRegionValue.ToString(), true),
+            Margin = new DiagramThickness() { Bottom = 0, Left = 0, Right = 0, Top = 0 },
+            PageHeight = (Parent.Parent.DiagramContent.DiagramPageHeight != null) ? (double)Parent.Parent.DiagramContent.DiagramPageHeight : pageBounds.Height,
+            PageWidth = (Parent.Parent.DiagramContent.DiagramPageWidth != null)? (double)Parent.Parent.DiagramContent.DiagramPageWidth : pageBounds.Width,
+        };
+        await ExportDialog.HideAsync();
+        await Parent.ExportDiagram(options, currentFormatValue.ToString(), diagramfileName);
+    }
+    /// <summary>
+    /// This method is used close the export diaglog box.
+    /// </summary>
+    private async Task CloseDialogHandler()
+    {
+        await ExportDialog.HideAsync();
+    }
+    /// <summary>
+    /// Represents the supported image formats.
+    /// </summary>
+    public enum Formats
+    {
+        /// <summary>
+        /// Save the file in JPEG Format
+        /// </summary>
+        JPEG,
+        /// <summary>
+        /// Save the file in PNG Format
+        /// </summary>
+        PNG,
+        /// <summary>
+        /// Save the file in SVG Format
+        /// </summary>
+        SVG,
+        /// <summary>
+        /// Save the file in PDF Format
+        /// </summary>
+        PDF
+    }
+    /// <summary>
+    /// Specifies the region that has to be fit within the viewport.
+    /// </summary>
+    public enum Regions
+    {
+        /// <summary>
+        /// Specifies the region within the given values(x,y, width and height) of page settings.
+        /// </summary>
+        PageSettings,
+        /// <summary>
+        /// Specifies the region holding content of the diagram without empty space around the content.
+        /// </summary>
+        Content,
+    }
+}

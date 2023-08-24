@@ -1,0 +1,67 @@
+﻿@using Syncfusion.Blazor.Popups
+
+@inject IJSRuntime jsRuntime
+@namespace OrganizationalChart
+
+<SfDialog @ref="@SaveDialog" @bind-Visible="@SaveDialogVisible" AllowDragging="true" Width="335px" ShowCloseIcon="true">
+    <DialogTemplates>
+        <Header>Save Diagram</Header>
+        <Content>
+            <div id="saveDialogContent">
+                <div class="row">
+                    <div class="row">File Name</div><div class="row db-dialog-child-prop-row">
+                       <input type="text" id="saveFileName" value="@DiagramfileName">
+                    </div>
+                </div>
+            </div>
+        </Content>
+    </DialogTemplates>
+    <DialogAnimationSettings Effect="@DialogEffect.None"></DialogAnimationSettings>
+    <DialogButtons>
+        <DialogButton OnClick="@BtnSave" Content="Save" CssClass="e-flat e-db-primary" IsPrimary="true">
+        </DialogButton>
+        <DialogButton OnClick="@btnCancelClick" Content="Cancel" CssClass="e-flat">
+        </DialogButton>
+    </DialogButtons>
+</SfDialog>
+
+@code {
+    /// <summary>
+    /// Indicates whether the save dialog is visible or not. Default value is false.
+    /// </summary>
+    private bool SaveDialogVisible = false;
+    /// <summary>
+    /// Reference to the DiagramMenuBar
+    /// </summary>
+    internal DiagramMenuBar Parent;
+    /// <summary>
+    /// The filename of the diagram. Default value is "Untitled Diagram".
+    /// </summary>
+    public string DiagramfileName = "Diagram";
+    /// <summary>
+    /// Reference to the SfDialog
+    /// </summary>
+    public SfDialog SaveDialog;
+
+    /// <summary>
+    /// Handles the save button click event.
+    /// </summary>
+    /// <returns>A task representing the asynchronous operation.</returns>
+    private async Task BtnSave()
+    {
+        string fileName = await jsRuntime.InvokeAsync<string>("getDiagramFileName", "save");
+        await Parent.Download(fileName);
+        await SaveDialog.HideAsync();
+    }
+    /// <summary>
+    /// To cancel the save dialog.
+    /// </summary>
+    /// <returns>A task representing the asynchronous operation.</returns>
+    private async Task btnCancelClick()
+    {
+        if (SaveDialog != null)
+        {
+            await SaveDialog.HideAsync();
+        }
+    }
+}
