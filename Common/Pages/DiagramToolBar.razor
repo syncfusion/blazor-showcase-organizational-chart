@@ -1,0 +1,287 @@
+﻿@using Syncfusion.Blazor.Navigations
+@using Syncfusion.Blazor.Buttons
+@using Syncfusion.Blazor.SplitButtons
+@using Syncfusion.Blazor.DropDowns
+@using Syncfusion.Blazor.Inputs
+
+@namespace OrganizationalChart
+
+<style>
+    #toolbarEditor .e-hscroll-bar{
+        overflow-x: initial !important;
+    }
+    .activecss {
+        background: #ffffff;
+    }
+    .e-dropdown-popup {
+        background-color: #fff;
+        color: #111827;
+    }
+</style>
+<div class='db-toolbar-editor' style="background: #e3e3e3;">
+    <div class='@toolbarClassName'>
+        <div ID="toolbarEditor" class="e-control e-toolbar e-lib e-keyboard" style="display:@OrgChartToolBarVisibility">
+            <SfToolbar @ref="@Toolbar" OverflowMode="@OverflowMode.Scrollable">
+                <ToolbarEvents Clicked="@ToolbarEditorClickInOrgChart"></ToolbarEvents>
+                <ToolbarItems>
+                    <ToolbarItem @ref="@UndoItem" PrefixIcon="e-icons sf-icon-Undo tb-icons" TooltipText="Undo" CssClass="tb-item-start tb-item-undo"></ToolbarItem>
+                    <ToolbarItem @ref="@RedoItem" PrefixIcon="e-icons sf-icon-Redo tb-icons" TooltipText="Redo" CssClass="tb-item-end tb-item-redo"></ToolbarItem>
+                    <ToolbarItem Type="@ItemType.Separator"></ToolbarItem>
+                    <ToolbarItem @ref="@PointerItem" PrefixIcon="e-icons sf-icon-Selector tb-icons" TooltipText="Pointer" CssClass="@PointerItemCssClass"></ToolbarItem>
+                    <ToolbarItem @ref="@PanItem" PrefixIcon="e-icons sf-icon-Pan tb-icons" TooltipText="Pan Tool" CssClass="@PanItemCssClass"></ToolbarItem>
+                   
+                    <ToolbarItem Type="@ItemType.Separator"></ToolbarItem>
+                    <ToolbarItem @ref="@AddChid" PrefixIcon="e-icons sf-icon-add-child tb-icons" TooltipText="Add Child" CssClass="tb-item-start tb-item-child"></ToolbarItem>
+                    <ToolbarItem @ref="@AddSibling" PrefixIcon="e-icons sf-icon-add-same-level-child icon" TooltipText="Add a child to the same level" CssClass="@addSiblingCssName"></ToolbarItem>
+                    <ToolbarItem @ref="@AddMultipleChild" PrefixIcon="e-icons sf-icon-move icon" TooltipText="Move the child parent to the next level" CssClass="@changeChildParentCssName"></ToolbarItem>
+                    <ToolbarItem @ref="@ZoomItem" PrefixIcon="e-icons tb-item-end tb-zoom-dropdown-btn" id="OrgChartZoom" Align="ItemAlign.Right">
+                        <Template>
+                            <SfDropDownButton ID="btnZoomIncrement" @ref="@ZoomItemDropdown" Content="@ZoomItemDropdownContent" CssClass="e-zoomoption e-dropdown-custom">
+                                <DropDownButtonEvents ItemSelected="@DrawZoomChange"></DropDownButtonEvents>
+                                <DropDownMenuItems>
+                                    <DropDownMenuItem Text="Zoom In"></DropDownMenuItem>
+                                    <DropDownMenuItem Text="Zoom Out"></DropDownMenuItem>
+                                    <DropDownMenuItem Text="Zoom to Fit"></DropDownMenuItem>
+                                    <DropDownMenuItem Text="Zoom to 50%"></DropDownMenuItem>
+                                    <DropDownMenuItem Text="Zoom to 100%"></DropDownMenuItem>
+                                    <DropDownMenuItem Text="Zoom to 200%"></DropDownMenuItem>
+                                </DropDownMenuItems>
+                            </SfDropDownButton>
+                                <div class=@HideButtonCss style="background-color: @HideButtonBackground;margin-left:20px">
+        <SfButton ID="btnHideProperty" IconCss="sf-icon-properties tb-hide-button tb-icons" OnClick="@HidePropertyContainer"></SfButton>
+    </div>
+                        </Template>
+                    </ToolbarItem>
+                </ToolbarItems>
+            </SfToolbar>
+        </div>
+    </div>
+</div>
+
+@code {
+
+    /// <summary>
+    /// Reference to the parent DiagramMain.
+    /// </summary>
+    //How to resolve CS8618 warning
+    internal DiagramMain Parent;
+
+    /// <summary>
+    /// Gets or sets the visibility of the diagram toolbar.
+    /// </summary>
+    public string DiagramToolbarVisibility { get; set; } = "block";
+
+    /// <summary>
+    /// Gets or sets the visibility of the mind map toolbar.
+    /// </summary>
+    public string MindmapToolbarVisibility { get; set; } = "none";
+
+    /// <summary>
+    /// Gets or sets the visibility of the organization chart toolbar.
+    /// </summary>
+    public string OrgChartToolBarVisibility { get; set; } = "none";
+
+    /// <summary>
+    /// Gets or sets the visibility of the general toolbar.
+    /// </summary>
+    public string ToolbarVisibility { get; set; } = "block";
+
+    /// <summary>
+    /// Gets or sets the visibility of the property panel.
+    /// </summary>
+    public string ShowPropertyVisibiity { get; set; } = "none";
+
+    /// <summary>
+    /// Background color for the hide button.
+    /// </summary>
+    string HideButtonBackground = "#0078d4";
+
+    /// <summary>
+    /// CSS class for the hide button.
+    /// </summary>
+    string HideButtonCss = "db-toolbar-hide-btn tb-property-open";
+
+    /// <summary>
+    /// SfToolbar instance.
+    /// </summary>
+    SfToolbar? Toolbar;
+
+    /// <summary>
+    /// CSS class name for the toolbar container.
+    /// </summary>
+    string toolbarClassName { get; set; } = "db-toolbar-container";
+
+    /// <summary>
+    /// CSS class name for adding sibling items.
+    /// </summary>
+    string addSiblingCssName { get; set; } = "tb-item-start tb-item-sibling";
+
+    string changeChildParentCssName { get; set; } = "tb-item-start tb-item-child";
+
+    /// <summary>
+    /// SfDropDownButton instance for the first dropdown button.
+    /// </summary>
+    private SfDropDownButton dropdownBtn;
+
+    /// <summary>
+    /// SfDropDownButton instance for the second dropdown button.
+    /// </summary>
+    private SfDropDownButton dropdownBtn1;
+
+    /// <summary>
+    /// CSS class for the menu hide icon.
+    /// </summary>
+    string MenuHideIconCss = "sf-icon-Collapse tb-icons";
+
+    /// <summary>
+    /// ToolbarItem instance for the Undo button.
+    /// </summary>
+    ToolbarItem ?UndoItem;
+
+    /// <summary>
+    /// ToolbarItem instance for the Redo button.
+    /// </summary>
+    ToolbarItem? RedoItem;
+
+    /// <summary>
+    /// ToolbarItem instance for the Zoom button.
+    /// </summary>
+    ToolbarItem? ZoomItem;
+
+    /// <summary>
+    /// SfDropDownButton instance for the Zoom dropdown button.
+    /// </summary>
+    SfDropDownButton? ZoomItemDropdown;
+
+    /// <summary>
+    /// Content for the ZoomItemDropdown.
+    /// </summary>
+    public string ZoomItemDropdownContent = "100%";
+
+    /// <summary>
+    /// ToolbarItem instance for the Pan button.
+    /// </summary>
+    ToolbarItem? PanItem;
+
+    /// <summary>
+    /// ToolbarItem instance for adding a child node.
+    /// </summary>
+    ToolbarItem? AddChid;
+
+    /// <summary>
+    /// ToolbarItem instance for adding a sibling node.
+    /// </summary>
+    ToolbarItem? AddSibling;
+
+    /// <summary>
+    /// ToolbarItem instance for adding multiple child nodes.
+    /// </summary>
+    ToolbarItem? AddMultipleChild;
+
+    /// <summary>
+    /// CSS class for the PanItem button.
+    /// </summary>
+   public string PanItemCssClass = "tb-item-start tb-item-pan";
+
+    /// <summary>
+    /// CSS class for the Fill button.
+    /// </summary>
+    string fill { get; set; } = "tb-item-start tb-item-fill";
+
+    /// <summary>
+    /// CSS class for the Stroke button.
+    /// </summary>
+    string stroke { get; set; } = "tb-item-end tb-item-stroke";
+
+    /// <summary>
+    /// ToolbarItem instance for the Pointer button.
+    /// </summary>
+    ToolbarItem? PointerItem;
+
+
+    /// <summary>
+    /// CSS class for the PointerItem button.
+    /// </summary>
+    public string PointerItemCssClass = "tb-item-middle tb-item-selected tb-item-pointer";
+    /// Gets or sets whether to show the Group separator.
+    /// </summary>
+    public bool ShowGroupSeparator { get; set; } = false;
+
+    /// <summary>
+    /// Gets or sets whether to show the AlignLeftItem button.
+    /// </summary>
+    public bool ShowAlignLeft { get; set; } = false;
+
+    /// <summary>
+    /// Gets or sets whether to show the AlignCenterItem button.
+    /// </summary>
+    public bool ShowAlignCenter { get; set; } = false;
+
+    /// <summary>
+    /// Gets or sets whether to show the AlignRightItem button.
+    /// </summary>
+    public bool ShowAlignRight { get; set; } = false;
+
+    /// <summary>
+    /// Gets or sets whether to show the AlignTopItem button.
+    /// </summary>
+    public bool ShowAlignTop { get; set; } = false;
+
+    /// <summary>
+    /// Gets or sets whether to show the AlignMiddleItem button.
+    /// </summary>
+    public bool ShowAlignMiddle { get; set; } = false;
+
+    /// <summary>
+    /// Gets or sets whether to show the AlignBottomItem button.
+    /// </summary>
+    public bool ShowAlignBottom { get; set; } = false;
+
+    /// <summary>
+    /// Gets or sets whether to show the AlignVerticalItem button.
+    /// </summary>
+    public bool ShowAlignVertical { get; set; } = false;
+
+    /// <summary>
+    /// Gets or sets whether to show the AlignHorizontalItem button.
+    /// </summary>
+    public bool ShowAlignHorizontal { get; set; } = false;
+
+    /// <summary>
+    /// Gets or sets whether to show the Align separator.
+    /// </summary>
+    public bool ShowAlignSeparator { get; set; } = false;
+
+    /// <summary>
+    /// Method invoked after the component has rendered.
+    /// </summary>
+    /// <param name="firstRender">True if this is the first render, false otherwise.</param>
+    protected override void OnAfterRender(bool firstRender)
+    {
+        //ZoomItemDropdownContent = FormattableString.Invariant($"{Math.Round(Parent.DiagramContent.CurrentZoom * 100)}") + "%";
+        base.OnAfterRender(firstRender);
+    }
+    /// <summary>
+    /// Click event handler for the dropdown button.
+    /// </summary>
+    /// <param name="e">Arguments for the open or close event.</param>
+    private void ClickHandler(BeforeOpenCloseEventArgs e)
+    {
+        dropdownBtn.Toggle();
+    }
+    /// <summary>
+    /// Click event handler for the dropdown button.
+    /// </summary>
+    /// <param name="e">Arguments for the open or close event.</param>
+    private void ClickHandler1(BeforeOpenCloseEventArgs e)
+    {
+        dropdownBtn1.Toggle();
+    }
+    /// <summary>
+/// Method to trigger a state change in the component.
+/// </summary>
+    public void StateChanged()
+    {
+        StateHasChanged();
+    }
+}

@@ -1,0 +1,1003 @@
+@using Syncfusion.Blazor.Inputs;
+@using Syncfusion.Blazor.Navigations;
+@using Syncfusion.Blazor.Diagram
+@using Syncfusion.PdfExport;
+@using System.Collections.ObjectModel;
+@using Syncfusion.Blazor.SplitButtons;
+
+@inject IJSRuntime jsRuntime
+@namespace OrganizationalChart
+
+<div class="db-header-container">
+    <div class='@menuClass'>
+        <h1 id='diagramName' style="width: 250px; font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" class="db-diagram-name"
+              @onclick="@RenameDiagram">@diagramName</h1>
+        <input id='diagramEditable' @ref="input" type="text" class="db-diagram-name" @onkeydown="@DiagramNameKeyDown" @onfocusout="@DiagramNameChange" @bind-value="@editedDiagramName" />
+        <span id='diagramreport' class="db-diagram-name db-save-text"></span>
+    </div>
+    <div class="db-menu-container">
+        <SfDropDownButton @ref="fileButton" Id ="btnFileMenu" Content="File" CssClass="e-dropDown-button">
+            <ChildContent>
+                <DropDownButtonEvents OnOpen="@OnOpenEventForFileMenuItems"></DropDownButtonEvents>
+            </ChildContent>
+            <PopupContent>
+                <SfContextMenu @ref="contextMenu" Items="@FileMenuItems" TValue="ContextMenuItemModel">
+                    <MenuEvents TValue="ContextMenuItemModel" Created="OnMenuCreated" ItemSelected="@MenuClick"></MenuEvents>
+                </SfContextMenu>
+            </PopupContent>
+        </SfDropDownButton>
+        <SfDropDownButton   Id ="btnEditMenu" Content="Edit" CssClass="e-dropDown-button">
+            <ChildContent>
+                <DropDownButtonEvents OnOpen="@OnOpenEventForEditMenuItems"></DropDownButtonEvents>
+            </ChildContent>
+            <PopupContent>
+                <SfContextMenu @ref="contextMenu" Items="@EditMenuItems" TValue="ContextMenuItemModel">
+                  <MenuEvents TValue="ContextMenuItemModel" Created="OnMenuCreated" ItemSelected="@MenuClick"></MenuEvents>
+                </SfContextMenu>
+            </PopupContent>
+        </SfDropDownButton>
+        <SfDropDownButton @ref="viewButton" Id ="btnViewMenu" Content="View" CssClass="e-dropDown-button">
+            <ChildContent>
+                <DropDownButtonEvents OnOpen="@OnOpenEventForViewMenuItems"></DropDownButtonEvents>
+            </ChildContent>
+            <PopupContent>
+                <SfContextMenu @ref="contextMenu" Items="@ViewMenuItems">
+                   <MenuEvents TValue="ContextMenuItemModel" Created="OnMenuCreated" ItemSelected="@MenuClick"></MenuEvents>
+                </SfContextMenu>
+            </PopupContent>
+        </SfDropDownButton>
+        <SfDropDownButton @ref="windowButton"  Id ="btnWindowMenu" Content="Window" CssClass="e-dropDown-button">
+            <ChildContent>
+                <DropDownButtonEvents OnOpen="@OnOpenEventForWindowMenuItems"></DropDownButtonEvents>
+            </ChildContent>
+            <PopupContent>
+                <SfContextMenu @ref="contextMenu" Items="@WindowMenuItems" >
+                   <MenuEvents TValue="ContextMenuItemModel" Created="OnMenuCreated" ItemSelected="@MenuClick"></MenuEvents>
+                </SfContextMenu>
+            </PopupContent>
+        </SfDropDownButton>
+        <div style="display:none">
+        <SfUploader @ref="@uploadFiles" Id ="defaultfileupload" ShowFileList="false" AllowedExtensions="@extensionType">
+            <UploaderEvents Success="@OnUploadSuccess" OnUploadStart="@OnUploadFileSelected"></UploaderEvents>
+            <UploaderAsyncSettings SaveUrl="https://aspnetmvc.syncfusion.com/services/api/uploadbox/Save" RemoveUrl="https://aspnetmvc.syncfusion.com/services/api/uploadbox/Remove"></UploaderAsyncSettings>
+        </SfUploader>
+        </div>
+        <DiagramSaveDialog @ref="@saveDialogBox"></DiagramSaveDialog>
+        <DiagramExportDialog @ref="@exportDialogBox"></DiagramExportDialog>
+        <DiagramPrintDialog @ref="@printDialogBox"></DiagramPrintDialog>
+    </div>
+</div>
+
+@code {
+
+    /// <summary>
+    /// Reference to the DiagramPrintDialog
+    /// </summary>
+    DiagramPrintDialog printDialogBox;
+    /// <summary>
+    /// Reference to the DiagramExportDialog
+    /// </summary>
+    DiagramExportDialog exportDialogBox;
+    /// <summary>
+    /// Reference to the DiagramSaveDialog
+    /// </summary>
+    DiagramSaveDialog saveDialogBox;
+    /// <summary>
+    /// Represents a drop-down button for file-related actions.
+    /// </summary>
+    SfDropDownButton fileButton;
+
+    /// <summary>
+    /// Represents a drop-down button for window-related actions.
+    /// </summary>
+    SfDropDownButton windowButton;
+
+    /// <summary>
+    /// Represents a drop-down button for view-related actions.
+    /// </summary>
+    SfDropDownButton viewButton;
+
+    /// <summary>
+    /// Represents a drop-down button for edit-related actions.
+    /// </summary>
+    SfDropDownButton editButton;
+
+    /// <summary>
+    /// Represents an instance of the Syncfusion Blazor Uploader for uploading files.
+    /// </summary>
+    Syncfusion.Blazor.Inputs.SfUploader? uploadFiles;
+
+    /// <summary>
+    /// The extension type for the files. Default value is ".json".
+    /// </summary>
+    string extensionType = ".json";
+
+    /// <summary>
+    /// Represents an instance of the Syncfusion Blazor ContextMenu with ContextMenuItemModel items.
+    /// </summary>
+    SfContextMenu<ContextMenuItemModel> contextMenu;
+
+    /// <summary>
+    /// A collection of strings used for disabling specific features.
+    /// </summary>
+    private List<string> disableCollection = new List<string>();
+
+    /// <summary>
+    /// Represents the reference to an HTML element.
+    /// </summary>
+    private ElementReference input;
+
+    /// <summary>
+    /// The value property of the instance.
+    /// </summary>
+    private string editedDiagramName { get; set; } = "";
+
+    /// <summary>
+    /// An array of strings representing the children of the field.
+    /// </summary>
+    private string[] FieldChildren = new string[] { "Options" };
+
+    /// <summary>
+    /// Indicates whether the paste button is enabled. Default value is false.
+    /// </summary>
+    public bool enablePasteButten = false;
+
+    /// <summary>
+    /// The CSS class name for the menu. Default value is "db-diagram-name-container".
+    /// </summary>
+    private string menuClass { get; set; } = "db-diagram-name-container";
+
+    /// <summary>
+    /// Reference to the DiagramMain instance that this belongs to.
+    /// </summary>
+    internal DiagramMain Parent;
+
+    /// <summary>
+    /// The CSS class for the ArrangeButton. Default value is "e-dropDown-button e-arrange-menu".
+    /// </summary>
+    internal string ArrangeButtonCss = "e-dropDown-button e-arrange-menu";
+
+    /// <summary>
+    /// The name of the diagram. Default value is "Untitled Diagram".
+    /// </summary>
+    public string diagramName { get; set; } = "Untitled Diagram";
+
+    /// <summary>
+    /// The selected new option.
+    /// </summary>
+    public string SelectNewOption = "";
+
+    /// <summary>
+    /// Indicates whether the open button was clicked. Default value is false.
+    /// </summary>
+    public bool IsOpenClick = false;
+
+    /// <summary>
+    /// Renames the diagram with the new value.
+    /// </summary>
+    /// <returns>A task representing the asynchronous operation.</returns>
+    private async Task RenameDiagram()
+    {
+        menuClass += " db-edit-name";
+        editedDiagramName = diagramName;
+        await input.FocusAsync();
+        await jsRuntime.InvokeVoidAsync("renameDiagram1", input);
+    }
+    /// <summary>
+    /// Handles the key down event when typing the diagram name.
+    /// </summary>
+    /// <param name="args">The keyboard event arguments.</param>
+    private void DiagramNameKeyDown(KeyboardEventArgs  args)
+    {
+        if (args.Key == "Enter")
+        {
+            diagramName = "";
+            string edit = " db-edit-name";
+            if (menuClass.Contains(edit))
+            {
+                int first = menuClass.IndexOf(edit);
+                menuClass = menuClass.Remove(first);
+            }
+        }
+    }
+    /// <summary>
+    /// Handles the change event when the diagram name is modified.
+    /// </summary>
+    /// <param name="args">The focus event arguments.</param>
+    private void DiagramNameChange( Microsoft.AspNetCore.Components.Web.FocusEventArgs args)
+    {
+        diagramName = editedDiagramName;
+        string edit = " db-edit-name";
+        if (menuClass.Contains(edit))
+        {
+            int first = menuClass.IndexOf(edit);
+            menuClass = menuClass.Remove(first);
+        }
+    }
+    /// <summary>
+    /// Populates the file dropdown items and enables/disables them based on the disableCollection.
+    /// </summary>
+    private void OnOpenEventForFileMenuItems() {
+        this.ItemSelection();
+        for (int i = 0; i < FileMenuItems.Count; i++)
+        {
+            if (disableCollection.IndexOf(FileMenuItems[i].Text) > -1)
+            {
+                FileMenuItems[i].Disabled = true;
+            }
+            else
+            {
+
+                FileMenuItems[i].Disabled = false;
+            }
+        }
+    }
+    /// <summary>
+    /// Opens the context menu.
+    /// </summary>
+    private void OnMenuCreated()
+    {
+        contextMenu.Open();
+    }
+    /// <summary>
+    /// Populates the edit dropdown items and enables/disables them based on the disableCollection.
+    /// </summary>
+    private void OnOpenEventForEditMenuItems()
+    {
+        this.ItemSelection();
+        for(int i =0; i<EditMenuItems.Count; i++)
+        {
+            if(disableCollection.IndexOf(EditMenuItems[i].Text) > -1)
+            {
+                EditMenuItems[i].Disabled = true;
+            }
+            else {
+
+                EditMenuItems[i].Disabled = false;
+            }
+        }
+
+    }
+    /// <summary>
+    /// Populates the open dropdown items and enables/disables them based on the disableCollection.
+    /// </summary>
+    private void OnOpenEventForViewMenuItems()
+    {
+        this.ItemSelection();
+        for (int i = 0; i < ViewMenuItems.Count; i++)
+        {
+            if (disableCollection.IndexOf(ViewMenuItems[i].Text) > -1)
+            {
+                ViewMenuItems[i].Disabled = true;
+            }
+            else
+            {
+                ViewMenuItems[i].Disabled = false;
+            }
+        }
+    }
+    /// <summary>
+    /// Handles the dropdown window button open event.
+    /// </summary>
+    private void OnOpenEventForWindowMenuItems()
+    {
+        this.ItemSelection();
+    }
+    /// <summary>
+    /// Represents a context menu item for a menu bar option.
+    /// </summary>
+    public class ContextMenuItemModel
+    {
+        public List<ContextMenuItemModel> Items { get; set; }
+        public string Text { get; set; }
+        public string Id { get; set; }
+        public string IconCss { get; set; }
+        public Boolean Separator { get; set; }
+        public Boolean Disabled { get; set; }
+    }
+    /// <summary>
+    /// Gets the list of Edit menu items within the menu bar.
+    /// </summary>
+    internal List<ContextMenuItemModel> EditMenuItems = new List<ContextMenuItemModel>
+    {
+         new   ContextMenuItemModel {Id ="EditMenuItemsUndo", Text= "Undo", IconCss="sf-icon-Undo" },
+    new   ContextMenuItemModel { Id ="EditMenuItemsRedo",Text= "Redo", IconCss="sf-icon-Redo" },
+    new   ContextMenuItemModel { Separator= true },
+    new   ContextMenuItemModel { Id ="EditMenuItemsCut",Text= "Cut", IconCss="sf-icon-Cut" },
+    new   ContextMenuItemModel { Id ="EditMenuItemsCopy",Text= "Copy", IconCss="sf-icon-Copy" },
+    new   ContextMenuItemModel {Id ="EditMenuItemsPaste", Text= "Paste", IconCss="sf-icon-Paste" },
+    new   ContextMenuItemModel {Id ="EditMenuItemsDelete", Text= "Delete", IconCss="sf-icon-Delete" },
+    new   ContextMenuItemModel { Separator= true },
+    new   ContextMenuItemModel { Id ="EditMenuItemsSelectAll",Text= "Select All", IconCss = "sf-icon-blank" },
+    };
+    /// <summary>
+    /// Gets the list of File menu items within the menu bar.
+    /// </summary>
+    internal List<ContextMenuItemModel> FileMenuItems = new List<ContextMenuItemModel>
+    {
+        new   ContextMenuItemModel {Id ="FileMenuItemsNew", Text = "New", IconCss = "sf-icon-circle-add" },
+    new   ContextMenuItemModel {Id ="FileMenuItemsOpen", Text = "Open", IconCss = "sf-icon-folder-open" },
+    new   ContextMenuItemModel { Separator = true },
+    new   ContextMenuItemModel { Id ="FileMenuItemsSave",Text = "Save", IconCss="sf-icon-Save" },
+    new   ContextMenuItemModel { Id ="FileMenuItemsSaveAs",Text = "Save As", IconCss = "sf-icon-save-as" },
+    new   ContextMenuItemModel {Id ="FileMenuItemsExport", Text = "Export", IconCss="sf-icon-Export" },
+    new   ContextMenuItemModel { Separator = true},
+    new   ContextMenuItemModel { Id ="FileMenuItemsPrint",Text = "Print",  IconCss="sf-icon-Print" }
+
+    };
+    /// <summary>
+    /// Gets the list of view menu items within the menu bar.
+    /// </summary>
+    private List<  ContextMenuItemModel> ViewMenuItems = new List<  ContextMenuItemModel>
+    {
+       new   ContextMenuItemModel { Id ="ViewMenuItemsZoomIn",Text="Zoom In", IconCss="sf-icon-ZoomIn" },
+        new   ContextMenuItemModel { Id ="ViewMenuItemsZoomOut",Text="Zoom Out", IconCss="sf-icon-ZoomOut" },
+        new   ContextMenuItemModel { Separator= true },
+        new   ContextMenuItemModel { Text ="Fit To Screen", IconCss = "sf-icon-blank" },
+        new   ContextMenuItemModel { Separator= true },
+        new   ContextMenuItemModel { Text="Show Grid" ,IconCss="sf-icon-Selection"},
+        new   ContextMenuItemModel { Separator= true },
+        new   ContextMenuItemModel { Text="Snap To Grid", IconCss = "sf-icon-blank" }
+    };
+    /// <summary>
+    /// Gets the list of Window menu items within the menu bar.
+    /// </summary>
+    public List<ContextMenuItemModel> WindowMenuItems = new List<ContextMenuItemModel>
+        {
+            new   ContextMenuItemModel { Text="Show Toolbar",IconCss="sf-icon-Selection" },
+            new   ContextMenuItemModel { Text="Show Shortcuts",IconCss="sf-icon-Selection"},
+            new   ContextMenuItemModel { Text="Show Properties",IconCss="sf-icon-Selection" },
+        };
+    /// <summary>
+    /// Checks if the given Text is one of the parent items.
+    /// </summary>
+    /// <param name="Text">The text to check.</param>
+    /// <returns>True if the Text is one of the parent items; otherwise, false.</returns>
+    private bool IsParent(string Text)
+    {
+        if (Text == "File" || Text == "Edit" || Text == "View" || Text == "Arrange" || Text == "Window" || Text == "Help")
+            return true;
+        else
+            return false;
+    }
+    /// <summary>
+    /// Invoked after the component has rendered for the first time.
+    /// </summary>
+    /// <param name="firstRender">True if this is the first render; otherwise, false.</param>
+    /// <returns>A task representing the asynchronous operation.</returns>
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        await base.OnAfterRenderAsync(firstRender);
+        if (firstRender)
+        {
+            if (saveDialogBox != null)
+                saveDialogBox.Parent = this;
+            if (exportDialogBox != null)
+                exportDialogBox.Parent = this;
+            if (printDialogBox != null)
+                printDialogBox.Parent = this;
+        }
+
+    }
+    public bool OpenClick;
+    /// <summary>
+    /// Handles the menu click event and performs the corresponding action based on the selected menu item.
+    /// </summary>
+    /// <param name="args">The event arguments containing information about the selected menu item.</param>
+    private async Task MenuClick(Syncfusion.Blazor.Navigations.MenuEventArgs<ContextMenuItemModel> args)
+    {
+        bool Edit = false;
+        bool File = false;
+        bool Window = false;
+        bool view = false;
+        if (Parent != null && Parent.OrgChartPropertyPanel != null && Parent.DiagramContent != null)
+        {
+            OrgChartPropertyContainer orgChartPropertyContainer = Parent.OrgChartPropertyPanel;
+            Syncfusion.Blazor.Diagram.SfDiagramComponent diagram = Parent.DiagramContent.Diagram;
+
+            string commandType = args.Item.Text.Replace(" ", "");
+            switch (commandType.ToLower())
+            {
+                case "new":
+                    File = true;
+                    orgChartPropertyContainer.IsUploader = false;
+                    await UpdateDiagram(diagram);
+                    break;
+                case "open":
+                    File = true;
+                    orgChartPropertyContainer.IsCopy = false;
+                    await OpenUploadBox(true, ".json");
+                    IsOpenClick = true;
+                    break;
+                case "undo":
+                    Edit = true;
+                    if (diagram.SelectionSettings.Nodes.Count > 1 || diagram.SelectionSettings.Connectors.Count > 1)
+                    {
+                        diagram.StartGroupAction();
+                    }
+                    diagram.Undo();
+                    if (diagram.SelectionSettings.Nodes.Count > 1 || diagram.SelectionSettings.Connectors.Count > 1)
+                    {
+                        diagram.EndGroupAction();
+                    }
+                    break;
+                case "redo":
+                    Edit = true;
+                    if (diagram.SelectionSettings.Nodes.Count > 1 || diagram.SelectionSettings.Connectors.Count > 1)
+                    {
+                        diagram.StartGroupAction();
+                    }
+                    diagram.Redo();
+                    if (diagram.SelectionSettings.Nodes.Count > 1 || diagram.SelectionSettings.Connectors.Count > 1)
+                    {
+                        diagram.EndGroupAction();
+                    }
+                    break;
+                case "cut":
+                    Edit = true;
+                    CopyEditUserHandleDetails(diagram);
+                    diagram.Cut();
+                    orgChartPropertyContainer.IsCopy = true;
+                    enablePasteButten = true;
+                    break;
+                case "copy":
+                    Edit = true;
+                    enablePasteButten = true;
+                    CopyEditUserHandleDetails(diagram);
+                    diagram.Copy();
+                    orgChartPropertyContainer.IsCopy = true;
+
+                    break;
+                case "paste":
+                    Edit = true;
+                    diagram.Paste();
+                    orgChartPropertyContainer.IsCopy = false;
+                    break;
+                case "delete":
+                    Edit = true;
+                    bool GroupAction = false;
+                    diagram.BeginUpdate();
+                    if (diagram.SelectionSettings.Nodes.Count > 1 || diagram.SelectionSettings.Connectors.Count > 1 || ((diagram.SelectionSettings.Nodes.Count + diagram.SelectionSettings.Connectors.Count) > 1))
+                    {
+                        GroupAction = true;
+                    }
+                    if (GroupAction)
+                    {
+                        diagram.StartGroupAction();
+                    }
+                    if (diagram.SelectionSettings.Nodes.Count != 0)
+                    {
+                        for (var i = diagram.SelectionSettings.Nodes.Count - 1; i >= 0; i--)
+                        {
+                            var item = diagram.SelectionSettings.Nodes[i];
+                            if (item.ID != "rootNode")
+                            {
+                                diagram.Nodes.Remove(item);
+                            }
+                        }
+                    }
+                    if (diagram.SelectionSettings.Connectors.Count != 0)
+                    {
+                        for (var i = diagram.SelectionSettings.Connectors.Count - 1; i >= 0; i--)
+                        {
+                            var item1 = diagram.SelectionSettings.Connectors[i];
+
+                            diagram.Connectors.Remove(item1);
+                        }
+                    }
+                    if (GroupAction)
+                    {
+                        diagram.EndGroupAction();
+                    }
+                    await diagram.EndUpdate();
+                    break;
+                case "duplicate":
+                    Edit = true;
+                    diagram.Copy();
+                    diagram.Paste();
+                    break;
+                case "selectall":
+                    Edit = true;
+                    diagram.SelectAll();
+                    break;
+                case "save":
+                    File = true;
+                    {
+                        SaveEditUserHandleDetails(diagram);
+                    }
+                    string fileName = await jsRuntime.InvokeAsync<string>("getDiagramFileName", "");
+                    await Download(fileName);
+                    break;
+                case "saveas":
+                    if(saveDialogBox!=null){
+                        File = true;
+                        {
+                            SaveEditUserHandleDetails(diagram);
+                        }
+                        saveDialogBox.DiagramfileName = await jsRuntime.InvokeAsync<string>("getDiagramFileName", "");
+                        if (saveDialogBox.SaveDialog!=null){
+                            await saveDialogBox.SaveDialog.ShowAsync();
+                        }
+                    }
+                    break;
+                case "print":
+
+                    File = true;
+                    await printDialogBox.PrintDialog.ShowAsync();
+                    break;
+                case "export":
+                    File = true;
+                    await exportDialogBox.ExportDialog.ShowAsync();
+                    break;
+                case "showtoolbar":
+                    Window = true;
+                    await Parent.Toolbar.HideElements("hide-toolbar");
+                    WindowMenuItems[0].IconCss = WindowMenuItems[0].IconCss == "sf-icon-Selection" ? "sf-icon-Remove" : "sf-icon-Selection";
+                    StateHasChanged();
+                    break;
+                case "showproperties":
+                    Window = true;
+                    await Parent.Toolbar.HidePropertyContainer();
+                    Parent.Toolbar.StateChanged();
+                    break;
+                case "showshortcuts":
+                    Window = true;
+                    Parent.ShowHideShortcutKey();
+                    break;
+                case "showgrid":
+                    view = true;
+                    diagram.BeginUpdate();
+                    Parent.DiagramContent.SnapConstraint = Parent.DiagramContent.SnapConstraint ^ SnapConstraints.ShowLines;
+                    await diagram.EndUpdate();
+                    ViewMenuItems[5].IconCss = ViewMenuItems[5].IconCss == "sf-icon-blank" ? "sf-icon-Selection" : "sf-icon-blank";
+                    break;
+                case "snaptogrid":
+                    view = true;
+                    Parent.DiagramContent.SnapConstraint = Parent.DiagramContent.SnapConstraint ^ SnapConstraints.SnapToLines;
+                    ViewMenuItems[7].IconCss = ViewMenuItems[7].IconCss == "sf-icon-blank" ? "sf-icon-Selection" : "sf-icon-blank";
+                    break;
+                case "fittoscreen":
+                    view = true;
+                    FitOptions fitoption = new FitOptions()
+                        {
+                            Mode = FitMode.Both,
+                            Region = DiagramRegion.PageSettings,
+                        };
+                    Parent.DiagramContent.Diagram.FitToPage(fitoption);
+                    break;
+                case "zoomin":
+                    view = true;
+                    Parent.DiagramContent.ZoomTo(new DiagramMainContent.ZoomOptions() { Type = "ZoomIn", ZoomFactor = 0.2 });
+                    Parent.Toolbar?.DiagramZoomValueChange();
+                    break;
+                case "zoomout":
+                    view = true;
+                    Parent.DiagramContent.ZoomTo(new DiagramMainContent.ZoomOptions() { Type = "ZoomOut", ZoomFactor = 0.2 });
+                    Parent.Toolbar?.DiagramZoomValueChange();
+                    break;
+            }
+        }
+        if(Edit)
+            editButton?.Toggle();
+        if (File)
+            fileButton?.Toggle();
+        if (Window)
+            windowButton?.Toggle();
+        if (view)
+            viewButton?.Toggle();
+    }
+    public async Task UpdateDiagram(SfDiagramComponent diagram)
+    {
+        OpenClick = true;
+        diagram.Clear();
+        Parent.DiagramContent.IsUndo = false;
+        Parent.DiagramContent.IsRedo = false;
+        enablePasteButten = false;
+
+        Node node = new Node()
+            {
+                Width = 150,
+                Height = 50,
+                OffsetX = 616,
+                OffsetY = 76,
+                ID = "rootNode",
+                Annotations = new DiagramObjectCollection<ShapeAnnotation>()
+            {
+                new ShapeAnnotation()
+                {
+                    Content="Name",
+                    Offset=new DiagramPoint(){X=0.5,Y=0.5},
+                    Style=new TextStyle(){Bold=true,FontSize=10}
+                }
+            },
+                Style = new ShapeStyle()
+                {
+                    Fill = "#C4F2E8",
+                    StrokeWidth = 2,
+                    StrokeColor = "#8BC1B7",
+                },
+                Shape = new BasicShape() { Shape = NodeBasicShapes.Rectangle, CornerRadius = 10, Type = NodeShapes.Basic },
+            };
+        await diagram.AddDiagramElements(new DiagramObjectCollection<NodeBase>() { node });
+        diagram.Select(new ObservableCollection<IDiagramObject>() { diagram.Nodes[0] });
+        diagram.ClearHistory();
+        diagram.BeginUpdate();
+        Parent.DiagramContent.SnapConstraint = SnapConstraints.None;
+        await diagram.EndUpdate();
+        diagram.ResetZoom();
+        ViewMenuItems[7].IconCss = "sf-icon-blank";
+        WindowMenuItems[2].IconCss = "sf-icon-Remove";
+        Parent.ShowOrgShortCutKey = "none";
+        WindowMenuItems[1].IconCss = "sf-icon-blank";
+        Parent.ShowHideShortcutKey();
+        Parent.DiagramContent.UpdatePointerTool();
+        Parent.Toolbar.PointerItemCssClass = "tb-item-middle tb-item-selected tb-item-pointer";
+        Parent.Toolbar.PanItemCssClass = "tb-item-start tb-item-pan";
+        await Parent.Toolbar.HideElements("hide-toolbar", true);
+        WindowMenuItems[0].IconCss = "sf-icon-Selection";
+        await Parent.Toolbar.HidePropertyContainer();
+        Parent.Toolbar.StateChanged();
+        this.ItemSelection();
+        StateHasChanged();
+        OpenClick = false;
+    }
+    /// <summary>
+    /// Copies user handle details for the selected nodes in the diagram.
+    /// </summary>
+    /// <param name="diagram">The diagram component to copy the user handle details from.</param>
+    public void CopyEditUserHandleDetails(SfDiagramComponent diagram)
+    {
+        foreach (Node node in diagram.SelectionSettings.Nodes)
+        {
+            string nodeID = node.ID;
+
+            Dictionary<string, object> objectdictionary = new Dictionary<string, object>();
+             object obj = new object();
+            objectdictionary.Add(node.ID,obj);
+
+            node.AdditionalInfo = objectdictionary;
+        }
+    }
+    /// <summary>
+    /// Saves user handle details for each node in the diagram.
+    /// </summary>
+    /// <param name="diagram">The diagram component to save the user handle details for.</param>
+    public void SaveEditUserHandleDetails(SfDiagramComponent diagram)
+    {
+        if (this.Parent!=null&&this.Parent.OrgChartPropertyPanel != null)
+        {
+            OrgChartPropertyContainer orgChartPropertyContainer = this.Parent.OrgChartPropertyPanel;
+            foreach (Node node in diagram.Nodes)
+            {
+
+                string nodeID = node.ID;
+                Dictionary<string, string> textBoxValues = orgChartPropertyContainer!.TextBoxDictionary[nodeID];
+
+                Dictionary<string, Dictionary<bool, bool>> checkBoxValues = new Dictionary<string, Dictionary<bool, bool>>();
+                Dictionary<string, object> objectDictionary = new Dictionary<string, object>();
+
+                foreach (var key in textBoxValues)
+                {
+                    string textValue = orgChartPropertyContainer.TextBoxDictionary[nodeID][key.Key];
+                    bool checkboxValue = orgChartPropertyContainer.CheckBoxDictionary[nodeID][key.Key];
+                    checkBoxValues = new Dictionary<string, Dictionary<bool, bool>>();
+                    var boolValues = new Dictionary<bool, bool>();
+                    if (orgChartPropertyContainer.ApplyDictionary.ContainsKey(nodeID))
+                    {
+                        boolValues.Add(checkboxValue, orgChartPropertyContainer.ApplyDictionary[nodeID]);
+                    }
+                    else
+                    {
+                        boolValues.Add(checkboxValue, true);
+                    }
+                    checkBoxValues.Add(textValue, boolValues);
+
+                    objectDictionary.Add(key.Key, checkBoxValues);
+                }
+
+                node.AdditionalInfo = objectDictionary;
+            }
+        }
+    }
+    /// <summary>
+    /// Opens the upload box to select a file for opening in the diagram.
+    /// </summary>
+    /// <param name="isOpen">A boolean value indicating whether to open the upload box.</param>
+    /// <param name="extensionType">The extension type of the file to open.</param>
+    /// <returns>A task representing the asynchronous operation.</returns>
+    public async Task OpenUploadBox(bool isOpen, string extensionTypes)
+    {
+        extensionType = extensionTypes;
+        await FileUtil.Click(jsRuntime);
+        StateHasChanged();
+    }
+    /// <summary>
+    /// Updates the collection of disabled menu items based on the current selection in the diagram.
+    /// </summary>
+    private void ItemSelection()
+    {
+        List<string> DisableCollection = new List<string>();
+        double DiagramCount = Parent.DiagramContent.Diagram.Nodes.Count + Parent.DiagramContent.Diagram.Connectors.Count;
+        ObservableCollection<object> collection = new ObservableCollection<object>();
+        var nodes = Parent.DiagramContent.Diagram.SelectionSettings.Nodes;
+        var connectors = Parent.DiagramContent.Diagram.SelectionSettings.Connectors;
+
+        foreach (Node node in nodes)
+        {
+            collection.Add(node);
+        }
+        foreach (Connector connector in connectors)
+        {
+            collection.Add(connector);
+        }
+
+
+        Node node1 = collection.Count > 0 ? collection[0] as Node : null;
+        Node node2 = collection.Count > 0 ? collection[0] as NodeGroup : null;
+        Connector connector1 = collection.Count > 0 ? collection[0] as Connector : null;
+
+        bool isLock = ((node1 != null && node1.Constraints.HasFlag(NodeConstraints.Drag)) || (connector1 != null && connector1.Constraints.HasFlag(ConnectorConstraints.Drag))) ? false : true;
+
+        Dictionary<string, bool> Select = new Dictionary<string, bool>()
+{
+            {"Undo",!Parent.DiagramContent.IsUndo},
+            {"Redo",!Parent.DiagramContent.IsRedo},
+            {"Cut",collection.Count == 0?true:false},
+            {"Copy",collection.Count == 0?true:false},
+            {"Paste",!enablePasteButten},
+            {"Delete",collection.Count == 0?true:false},
+            {"Duplicate",collection.Count == 0?true:false},
+            {"Select All",DiagramCount == 0?true:false},
+        };
+        foreach (var Text in Select)
+        {
+            if (Text.Value)
+            {
+                DisableCollection.Add(Text.Key);
+            }
+        }
+
+        this.disableCollection = DisableCollection;
+            ViewMenuItems[5].IconCss = Parent.DiagramContent.SnapConstraint.HasFlag(SnapConstraints.ShowLines) ? "sf-icon-Selection" : "sf-icon-blank";
+    }
+    /// <summary>
+    /// Downloads the diagram as a file with the specified file name.
+    /// </summary>
+    /// <param name="fileName">The name of the file to be used for downloading the diagram.</param>
+    /// <returns>A task representing the asynchronous operation.</returns>
+    public async Task Download(string fileName)
+    {
+        string data = Parent.DiagramContent.Diagram.SaveDiagram();
+        await FileUtil.SaveAs(jsRuntime, data, fileName);
+    }
+    /// <summary>
+    /// Handles the success event after uploading a file.
+    /// </summary>
+    /// <param name="args">The event arguments containing information about the uploaded file.</param>
+    private void OnUploadSuccess(SuccessEventArgs args)
+    {
+        if (args.Operation != "remove")
+        {
+            var file1 = args.File;
+            var file = file1.RawFile;
+            var fileType = file1.Type.ToString();
+        }
+    }
+    /// <summary>
+    /// Handles the file selection event for file upload.
+    /// </summary>
+    /// <param name="args">The event arguments containing information about the selected file.</param>
+    /// <returns>A task representing the asynchronous operation.</returns>
+    private async Task OnUploadFileSelected(Syncfusion.Blazor.Inputs.UploadingEventArgs args)
+    {
+        SfDiagramComponent Diagram = Parent.DiagramContent.Diagram;
+        if (args.FileData.Type == "json")
+        {
+            await Task.Delay(100);
+            string json = await FileUtil.LoadFile(jsRuntime, args.FileData);
+            json = json.Replace(System.Environment.NewLine, string.Empty);
+            await Parent.DiagramContent.Diagram.LoadDiagram(json.ToString());
+        }
+        else
+        {
+
+            Node Node = Diagram.SelectionSettings.Nodes[0];
+            Diagram.BeginUpdate();
+            Node.Shape = new ImageShape() { Type = NodeShapes.Image, Source = args.FileData.RawFile.ToString() };
+           await Diagram.EndUpdate();
+        }
+    }
+    /// <summary>
+    /// Exports the diagram in the specified format and with the given settings.
+    /// </summary>
+    /// <param name="exportOptions">The export settings for the diagram.</param>
+    /// <param name="exportType">The type of export format (e.g., PDF, JPEG, etc.).</param>
+    /// <param name="fileName">The name of the file to be exported.</param>
+    /// <returns>A task representing the asynchronous operation.</returns>
+    public async Task ExportDiagram(Syncfusion.Blazor.Diagram.DiagramExportSettings exportOptions, string exportType, string fileName)
+    {
+        var diagram = Parent.DiagramContent.Diagram;
+        DiagramExportFormat exportFormat = DiagramExportFormat.JPEG;
+        var images = await diagram.ExportAsync(exportFormat, exportOptions);
+        var Orientation = (Parent.DiagramContent.DiagramOrientation == PageOrientation.Landscape) ? PdfPageOrientation.Landscape : PdfPageOrientation.Portrait;
+        if (exportType.ToString() == "PDF")
+        {
+            await ExportToPdf(fileName, Orientation, true, images);
+        }
+        else
+        {
+            exportFormat = (DiagramExportFormat)(Enum.Parse(typeof(DiagramExportFormat), exportType.ToString(), true));
+            await diagram.ExportAsync(fileName, exportFormat, exportOptions);
+        }
+    }
+    /// <summary>
+    /// Exports the diagram to a PDF document with the specified settings.
+    /// </summary>
+    /// <param name="fileName">The name of the PDF file to be exported.</param>
+    /// <param name="orientation">The page orientation for the PDF.</param>
+    /// <param name="allowDownload">A boolean value indicating whether to allow the user to download the PDF file.</param>
+    /// <param name="images">An array of base64 strings representing the images to be included in the PDF.</param>
+    /// <returns>A base64 string representing the exported PDF data.</returns>
+    private async Task<string> ExportToPdf(string fileName, PdfPageOrientation orientation, bool allowDownload, string[] images)
+    {
+        PdfDocument document = new PdfDocument();
+        document.PageSettings.Orientation = orientation;
+        document.PageSettings.Margins = new PdfMargins() { Left = 0, Right = 0, Top = 0, Bottom = 0 };
+        string base64String;
+        var dict = images;
+        for (int i = 0; i < dict.Count(); i++)
+        {
+            base64String = dict[i];
+            using (MemoryStream initialStream = new MemoryStream(Convert.FromBase64String(base64String.Split("base64,")[1])))
+            {
+                Stream stream = initialStream as Stream;
+                PdfPage page = document.Pages.Add();
+                PdfGraphics graphics = page.Graphics;
+#pragma warning disable CA2000
+                PdfBitmap image = new PdfBitmap(stream);
+#pragma warning restore CA2000
+                graphics.DrawImage(image, 0, 0);
+
+            }
+        }
+        using (MemoryStream memoryStream = new MemoryStream())
+        {
+            document.Save(memoryStream);
+            memoryStream.Position = 0;
+            base64String = Convert.ToBase64String(memoryStream.ToArray());
+            if (allowDownload)
+            {
+                await JSRuntimeExtensions.InvokeAsync<string>(jsRuntime, "downloadPdf", new object[] { base64String, fileName });
+                base64String = string.Empty;
+            }
+            else
+            {
+                base64String = "data:application/pdf;base64," + base64String;
+            }
+
+            document.Dispose();
+        }
+
+        return base64String;
+    }
+    /// <summary>
+    /// Prints the diagram with the specified print settings.
+    /// </summary>
+    /// <param name="printOptions">The print settings for the diagram.</param>
+    /// <returns>A task representing the asynchronous operation.</returns>
+    public async Task PrintDiagram(Syncfusion.Blazor.Diagram.DiagramPrintSettings printOptions)
+    {
+        var diagram = Parent.DiagramContent.Diagram;
+
+        await diagram.PrintAsync(printOptions);
+    }
+    /// <summary>
+    /// Determines whether the specified menu item with the given text should be enabled or disabled based on the current state.
+    /// </summary>
+    /// <param name="itemText">The text of the menu item to be evaluated.</param>
+    /// <param name="collection">The collection of selected items in the diagram.</param>
+    /// <returns><c>true</c> if the menu item should be enabled, <c>false</c> otherwise.</returns>
+    private bool EnableMenuItems(string itemText, ObservableCollection<object> collection)
+    {
+
+        if (itemText != "")
+        {
+            var commandType = itemText.Replace(" ", "");
+            if (collection.Count == 0)
+            {
+                switch (commandType.ToLower())
+                {
+                    case "cut":
+                        return true;
+                    case "copy":
+                        return true;
+                    case "delete":
+                        return true;
+                    case "duplicate":
+                        return true;
+                }
+            }
+
+            if (!enablePasteButten && itemText == "Paste")
+            {
+                return true;
+            }
+            if ( itemText == "Undo")
+            {
+
+                return !this.Parent.DiagramContent.IsUndo;
+            }
+            if ( itemText == "Redo")
+            {
+
+                return !this.Parent.DiagramContent.IsRedo;
+            }
+            if (itemText == "Select All")
+            {
+                if (collection.Count == 0)
+                {
+                    return true;
+                }
+            }
+
+            if (collection.Count > 1 || collection.Count == 0)
+            {
+                commandType = itemText.Replace(" ", "");
+                switch (commandType.ToLower())
+                {
+                    case "sendtoback":
+                        return true;
+                    case "bringtofront":
+                        return true;
+                    case "sendbackward":
+                        return true;
+                    case "bringforward":
+                        return true;
+                }
+            }
+
+            if (collection.Count == 1 || collection.Count == 0)
+            {
+                commandType = itemText.Replace(" ", "");
+                switch (commandType.ToLower())
+                {
+                    case "right":
+                        return true;
+                    case "left":
+                        return true;
+                    case "center":
+                        return true;
+                    case "top":
+                        return true;
+                    case "bottom":
+                        return true;
+                    case "middle":
+                        return true;
+                    case "horizontally":
+                        return true;
+                    case "vertically":
+                        return true;
+                    case "bothwidthandheight":
+                        return true;
+                    case "width":
+                        return true;
+                    case "height":
+                        return true;
+                    case "lock":
+                        return true;
+                    case "unlock":
+                        return true;
+                }
+            }
+        }
+        return false;
+
+    }
+    /// <summary>
+    /// Notifies the component that its state has changed and that the rendering process should be re-triggered.
+    /// </summary>
+    public void StateChanged()
+    {
+        StateHasChanged();
+    }
+}

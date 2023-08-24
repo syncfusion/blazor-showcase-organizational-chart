@@ -1,0 +1,12 @@
+diff a/Common/Pages/DiagramToolBar.razor b/Common/Pages/DiagramToolBar.razor	(rejected hunks)
+@@ -18,8 +18,8 @@
+         color: #111827;
+     }
+ 
+-    #OrgChartZoom {
+-        margin-left: 1097px;
++ /*   #OrgChartZoom {
++        margin-left: 1097px;*/
+     }
+ </style>
+ <div class='db-toolbar-editor' style="background: #e3e3e3;">

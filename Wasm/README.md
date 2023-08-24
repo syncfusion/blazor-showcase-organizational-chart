@@ -1,6 +1,6 @@
 # Essential Studio for Blazor - Diagram Builder
 
-The Blazor diagram builder application is used to create diagrams such as FlowChart and MindMap diagrams. In the diagram builder application, all support diagrams, such as Print, Export, and Drawing Tool support, are available in the Diagram Builder application. You can interact with the diagram or create your own using shapes.
+An organizational chart, also known as an organogram or hierarchy chart, is a graphical representation of the structure of an organization. It illustrates the relationships, roles, and reporting lines between individuals and departments within the organization.
 
 ## Deployment
 

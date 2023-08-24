@@ -1,0 +1,1321 @@
+@using Syncfusion.Blazor.Diagram
+@using Syncfusion.Blazor.Buttons
+@using System.Collections.ObjectModel
+@using System.Text.Json;
+@inherits SampleBaseComponent;
+@namespace OrganizationalChart
+
+<div class="db-diagram-container">
+    <div id="diagramContainerDiv" class=@DiagramContainerClassName style="position:relative;">
+        <SfDiagramComponent @ref="@Diagram" SelectionSettings="@SelectedModel" NodeCreating="NodeDefaults" InteractionController="@DiagramTool" ConnectorCreating="@ConnectorDefaults" @bind-Width="@DiagramWidth" @bind-Height="@DiagramHeight" SelectionChanged="@SelectionChanged" @bind-Nodes="@nodes" @bind-Connectors="@connectors" HistoryChanged="@HistoryChange" ScrollChanged="ScrollChanged" GetCustomTool="@GetCustomTool" Created="Created">
+            <PageSettings @bind-ShowPageBreaks="@DiagramShowPageBreaks" @bind-Orientation="@DiagramOrientation" @bind-Width="@DiagramPageWidth" @bind-Height="@DiagramPageHeight" @bind-MultiplePage=@IsMultiplePage>
+                <BackgroundStyle @bind-Background="@DiagramBgColor"></BackgroundStyle>
+                <PageMargin @bind-Left="@marginLeft" @bind-Top="@marginRight"></PageMargin>
+            </PageSettings>
+                <DiagramHistoryManager HistoryAdding="@OnHistoryAdding"/>
+            <SnapSettings @bind-Constraints="@SnapConstraint">
+                <HorizontalGridLines LineIntervals="@SnapIntervals" LineColor="@Hlinecolor"></HorizontalGridLines>
+                <VerticalGridLines LineIntervals="@SnapIntervals" LineColor="@Hlinecolor"></VerticalGridLines>
+            </SnapSettings>
+            <ScrollSettings @bind-ScrollLimit="@scrollLimit" @bind-CurrentZoom="@CurrentZoom" @bind-MaxZoom="@maxZoom" @bind-MinZoom="@minZoom"></ScrollSettings>
+                <CommandManager @bind-Commands="@commands" Execute="@ExecuteCommand" CanExecute="@CanExecute" />
+                <Layout Type="LayoutType.OrganizationalChart" @bind-HorizontalSpacing="@HorizontalSpacing" @bind-VerticalSpacing="@VerticalSpacing" @bind-HorizontalAlignment="@horizontalAlignment" @bind-VerticalAlignment="@verticalAlignment" GetLayoutInfo="@getLayoutInfo">
+                       <LayoutMargin Left="50" Top="50"></LayoutMargin>
+                </Layout>
+                
+        </SfDiagramComponent>
+    </div>
+</div>
+
+@code {
+    /// <summary>
+    /// Specifies the margin on the left side of the diagram.
+    /// </summary>
+    double marginLeft = 5;
+
+    /// <summary>
+    /// Specifies the margin on the right side of the diagram.
+    /// </summary>
+    double marginRight = 5;
+
+    /// <summary>
+    /// Collection of keyboard commands associated with the diagram objects.
+    /// </summary>
+    DiagramObjectCollection<KeyboardCommand> commands = new DiagramObjectCollection<KeyboardCommand>();
+
+    /// <summary>
+    /// Specifies the vertical spacing between diagram elements.
+    /// </summary>
+    int VerticalSpacing = 50;
+
+    /// <summary>
+    /// Specifies the horizontal spacing between diagram elements.
+    /// </summary>
+    int HorizontalSpacing = 100;
+
+    /// <summary>
+    /// Collection of user handles associated with the diagram objects.
+    /// </summary>
+    DiagramObjectCollection<UserHandle> UserHandles = new DiagramObjectCollection<UserHandle>();
+
+    /// <summary>
+    /// Specifies the horizontal alignment of the diagram elements.
+    /// </summary>
+    private HorizontalAlignment horizontalAlignment = HorizontalAlignment.Auto;
+
+    /// <summary>
+    /// Specifies the vertical alignment of the diagram elements.
+    /// </summary>
+    private VerticalAlignment verticalAlignment = VerticalAlignment.Auto;
+
+    /// <summary>
+    /// Reference to the parent DiagramMain object.
+    /// </summary>
+    internal DiagramMain Parent;
+
+    /// <summary>
+    /// Settings for the selected model in the diagram.
+    /// </summary>
+    public DiagramSelectionSettings SelectedModel = new DiagramSelectionSettings();
+
+    /// <summary>
+    /// Collection of nodes in the diagram.
+    /// </summary>
+    public ObservableCollection<Node> NodesCollection = new ObservableCollection<Node>();
+
+    /// <summary>
+    /// Collection of connectors in the diagram.
+    /// </summary>
+    public ObservableCollection<Connector> ConnectorCollection = new ObservableCollection<Connector>();
+
+    /// <summary>
+    /// Reference to the SfDiagramComponent object representing the diagram.
+    /// </summary>
+    public SfDiagramComponent Diagram;
+
+    /// <summary>
+    /// Collection of nodes in the diagram.
+    /// </summary>
+    public DiagramObjectCollection<Node> nodes { get; set; } = new DiagramObjectCollection<Node>();
+
+    /// <summary>
+    /// Collection of connectors in the diagram.
+    /// </summary>
+    public DiagramObjectCollection<Connector> connectors { get; set; } = new DiagramObjectCollection<Connector>();
+
+    /// <summary>
+    /// Specifies the class name for the diagram container element.
+    /// </summary>
+    public string DiagramContainerClassName = "db-current-diagram-container";
+
+    /// <summary>
+    /// Specifies the current interaction tool for the diagram.
+    /// </summary>
+    public DiagramInteractions DiagramTool = DiagramInteractions.Default;
+
+    /// <summary>
+    /// Specifies the scroll limit mode for the diagram.
+    /// </summary>
+    public ScrollLimitMode scrollLimit { get; set; } = ScrollLimitMode.Infinity;
+
+    /// <summary>
+    /// Specifies the current zoom level of the diagram.
+    /// </summary>
+    public double CurrentZoom { get; set; } = 1;
+
+    /// <summary>
+    /// Specifies the minimum allowed zoom level of the diagram.
+    /// </summary>
+    public double minZoom { get; set; } = 0.25;
+
+    /// <summary>
+    /// Specifies the maximum allowed zoom level of the diagram.
+    /// </summary>
+    public double maxZoom { get; set; } = 30;
+
+    /// <summary>
+    /// Specifies whether to show page breaks in the diagram.
+    /// </summary>
+    public bool DiagramShowPageBreaks;
+
+    /// <summary>
+    /// Specifies the orientation of the diagram pages.
+    /// </summary>
+    public PageOrientation DiagramOrientation = PageOrientation.Landscape;
+
+    /// <summary>
+    /// Specifies the width of the diagram pages in points.
+    /// </summary>
+    public double? DiagramPageWidth = 816;
+
+    /// <summary>
+    /// Specifies the height of the diagram pages in points.
+    /// </summary>
+    public double? DiagramPageHeight = 1056;
+
+    /// <summary>
+    /// Specifies the width of the diagram container element.
+    /// </summary>
+    public string DiagramWidth = "100%";
+
+    /// <summary>
+    /// Specifies the height of the diagram container element.
+    /// </summary>
+    public string DiagramHeight = "100%";
+
+    /// <summary>
+    /// Specifies the color of horizontal grid lines.
+    /// </summary>
+    public string Hlinecolor { get; set; } = "lightgray";
+
+    /// <summary>
+    /// Specifies whether the diagram spans multiple pages.
+    /// </summary>
+    public bool IsMultiplePage = true;
+
+    /// <summary>
+    /// Specifies whether the undo functionality is enabled in the diagram.
+    /// </summary>
+    public bool IsUndo = false;
+
+    /// <summary>
+    /// Specifies whether the redo functionality is enabled in the diagram.
+    /// </summary>
+    public bool IsRedo = false;
+
+    /// <summary>
+    /// Specifies the background color of the diagram.
+    /// </summary>
+    public string DiagramBgColor = "white";
+
+    /// <summary>
+    /// Specifies a double value.
+    /// </summary>
+    public double i { get; set; } = 0;
+
+    /// <summary>
+    /// Specifies the snap constraints for the diagram elements.
+    /// </summary>
+    public SnapConstraints SnapConstraint = SnapConstraints.None;
+
+    /// <summary>
+    /// Specifies the snap intervals for the diagram elements.
+    /// </summary>
+    public double[] SnapIntervals { get; set; } = new double[] {
+            1, 9, 0.25, 9.75, 0.25, 9.75, 0.25, 9.75, 0.25, 9.75, 0.25, 9.75, 0.25, 9.75, 0.25, 9.75, 0.25, 9.75, 0.25, 9.75
+    };
+
+    /// <summary>
+    /// Specifies whether to show the diagram.
+    /// </summary>
+    public bool show = true;
+
+    /// <summary>
+    /// Specifies whether the diagram is selected.
+    /// </summary>
+    public bool diagramSelected = false;
+    public void InitializeDiagramModel()
+    {
+        Node node = new Node()
+            {
+                Width = 150,
+                Height = 50,
+                ID = "rootNode",
+                Annotations = new DiagramObjectCollection<ShapeAnnotation>()
+            {
+                new ShapeAnnotation()
+                {
+                    Content="Name",
+                    Offset=new DiagramPoint(){X=0.5,Y=0.5},
+                    Style=new TextStyle(){Bold=true,FontSize=10}
+                }
+            },
+                Style = new ShapeStyle()
+                {
+                    Fill = "#C4F2E8",
+                    StrokeWidth = 2,
+                    StrokeColor = "#8BC1B7",
+                },
+                Shape = new BasicShape() { Shape = NodeBasicShapes.Rectangle, CornerRadius = 10, Type = NodeShapes.Basic },
+            };
+        UserHandle OrgAddHandle = new UserHandle()
+            {
+                Name = "OrgAddHandle",
+                BackgroundColor = "#7d7d7d",
+                Size = 23,
+                PathData = "M 30.05 15.03 L 30.05 30.05 L 15.02 30.05 L 15.02 39.9 L 30.05 39.9 L 30.05 54.93 L 39.9 54.93 L 39.9 39.9 L 54.93 39.9 L 54.93 30.05 L 39.9 30.05 L 39.9 15.03 z",
+                Visible = true,
+                Displacement = 10,
+                Offset = 0,
+                Side = Direction.Left,
+
+            };
+        UserHandle OrgRemoveHandle = new UserHandle()
+            {
+                Name = "OrgRemoveHandle",
+                BackgroundColor = "#7d7d7d",
+                Size = 23,
+                PathData = "M 7.04 22.13 L 92.95 22.13 L 92.95 88.8 C 92.95 91.92 91.55 94.58 88.76 96.74 C 85.97 98.91 82.55 100 78.52 100 L 21.48 100 C 17.45 100 14.03 98.91 11.24 96.74 C 8.45 94.58 7.04 91.92 7.04 88.8 z M 32.22 0 L 67.78 0 L 75.17 5.47 L 100 5.47 L 100 16.67 L 0 16.67 L 0 5.47 L 24.83 5.47 z",
+                Visible = true,
+                Displacement = 10,
+                Offset = 1,
+                Side = Direction.Right,
+
+            };
+        UserHandle OrgEditHandle = new UserHandle()
+            {
+                Name = "OrgEditHandle",
+                BackgroundColor = "#7d7d7d",
+                Size = 23,
+                PathData = "M 42.65 30.41 L 67.5 53.99 L 41.2 78.73 C 39.41 80.42 37.34 81.27 34.99 81.27 C 32.65 81.27 30.57 80.49 28.78 78.93 L 25.05 82.44 L 0 82.44 L 16.36 67.05 C 14.57 65.36 13.67 63.41 13.67 61.2 C 13.67 58.99 14.57 56.98 16.36 55.16 z M 78.42 25.49 C 78.57 0 78.73 0.01 78.88 0.01 C 81.09 -0.12 83.09 0.66 84.88 2.35 L 97.52 14.04 C 99.17 15.86 100 17.87 100 20.09 C 100 22.29 99.17 24.24 97.52 25.93 L 71.84 50.09 L 46.79 26.51 L 72.47 2.35 C 74.15 0.77 76.13 -0.02 78.42 25.49 z",
+                Visible = true,
+                Displacement = 10,
+                Offset = 0,
+                Side = Direction.Right,
+
+            };
+        //Add user handle to the collection.
+        UserHandles = new DiagramObjectCollection<UserHandle>()
+        {
+            OrgAddHandle,OrgEditHandle,OrgRemoveHandle
+        };
+        SelectedModel = new DiagramSelectionSettings()
+            {
+                Constraints = SelectorConstraints.All & ~(SelectorConstraints.Rotate | SelectorConstraints.ResizeAll),
+
+                UserHandles = this.UserHandles
+            };
+        commands = new DiagramObjectCollection<KeyboardCommand>()
+        {
+
+            new KeyboardCommand() { Name = "fileNew", Gesture = new KeyGesture(){ Key = DiagramKeys.N, Modifiers = ModifierKeys.Shift } },
+                   new KeyboardCommand() { Name = "copy", Gesture = new KeyGesture(){ Key = DiagramKeys.C, Modifiers = ModifierKeys.Control } },
+                    new KeyboardCommand() { Name = "paste", Gesture = new KeyGesture(){ Key = DiagramKeys.V, Modifiers = ModifierKeys.Control } },
+                    new KeyboardCommand() { Name = "cut", Gesture = new KeyGesture(){ Key = DiagramKeys.X, Modifiers = ModifierKeys.Control } },
+                        new KeyboardCommand() { Name = "delete", Gesture = new KeyGesture(){ Key = DiagramKeys.Delete, Modifiers = ModifierKeys.None } },
+            new KeyboardCommand() { Name = "fileOpen", Gesture = new KeyGesture(){ Key = DiagramKeys.O, Modifiers = ModifierKeys.Control } },
+            new KeyboardCommand() { Name = "fileSave", Gesture = new KeyGesture(){ Key = DiagramKeys.S, Modifiers = ModifierKeys.Control } },
+            new KeyboardCommand() { Name = "duplicate", Gesture = new KeyGesture(){ Key = DiagramKeys.D, Modifiers = ModifierKeys.Control } },
+            new KeyboardCommand() { Name = "addChild", Gesture = new KeyGesture(){ Key = DiagramKeys.Tab, Modifiers = ModifierKeys.None } },
+            new KeyboardCommand() { Name = "navigationDown", Gesture = new KeyGesture(){ Key = DiagramKeys.ArrowDown, Modifiers = ModifierKeys.None } },
+            new KeyboardCommand() { Name = "navigationUp", Gesture = new KeyGesture(){ Key = DiagramKeys.ArrowUp,Modifiers = ModifierKeys.None } },
+            new KeyboardCommand() { Name = "navigationLeft", Gesture = new KeyGesture(){ Key = DiagramKeys.ArrowLeft, Modifiers = ModifierKeys.None } },
+         new KeyboardCommand() { Name = "navigationRight", Gesture = new KeyGesture(){ Key = DiagramKeys.ArrowRight, Modifiers = ModifierKeys.None } },
+            new KeyboardCommand() { Name = "changeChildParent", Gesture = new KeyGesture(){ Key = DiagramKeys.Tab, Modifiers = ModifierKeys.Shift } },
+         new KeyboardCommand() { Name = "childToSameLevel", Gesture = new KeyGesture(){ Key = DiagramKeys.Enter, Modifiers = ModifierKeys.None } },
+         new KeyboardCommand() { Name = "showShortCut", Gesture = new KeyGesture(){ Key = DiagramKeys.F1, Modifiers = ModifierKeys.None } },
+
+        };
+
+        nodes.Add(node);
+    }
+    /// <summary>
+    /// This method is called when the component is initialized.
+    /// It sets up the initial configuration of the diagram, including nodes, user handles, and keyboard commands.
+    /// </summary>
+    protected override void OnInitialized()
+    {
+        InitializeDiagramModel();
+
+    }
+    /// <summary>
+    /// This method is called when the component is initialized asynchronously.
+    /// </summary>
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+    }
+    /// <summary>
+    /// This method is called after the component has rendered.
+    /// </summary>
+    /// <param name="firstRender">True if this is the first render, otherwise false.</param>
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+
+        await base.OnAfterRenderAsync(firstRender);
+    }
+    /// <summary>
+    /// A private asynchronous method to set default properties for a node in the diagram.
+    /// </summary>
+    /// <param name="obj">The diagram object (node) to apply default properties to.</param>
+    private async Task NodeDefaults(IDiagramObject obj)
+    {
+        Node node = obj as Node;
+        OrgChartPropertyContainer orgChartPropertyContainer = Parent.OrgChartPropertyPanel;
+        node.Ports = new DiagramObjectCollection<PointPort>()
+        {
+            new PointPort()
+            {
+                  ID = "left",
+                  Shape = PortShapes.Square,
+                  Width = 10,
+                  Height = 10,
+                  Visibility = PortVisibility.Hidden,
+                  Constraints =PortConstraints.Default,
+                  Offset = new DiagramPoint() { X = 0, Y = 0.5 },
+            },
+            new PointPort()
+            {
+                ID = "top",
+                Shape = PortShapes.Square,
+                Width = 10,
+                Height = 10,
+                 Visibility = PortVisibility.Hidden,
+                  Constraints =PortConstraints.Default,
+                Offset = new DiagramPoint() { X = 0.5, Y = 0 },
+            },
+            new PointPort()
+            {
+                  ID = "bottom",
+                  Shape = PortShapes.Square,
+                  Width = 10,
+                  Height = 10,
+                    Visibility = PortVisibility.Hidden,
+                  Constraints =PortConstraints.Default,
+                  Offset = new DiagramPoint() { X = 0.5, Y = 1 },
+            },
+            new PointPort()
+            {
+                  ID = "right",
+                  Shape = PortShapes.Square,
+                  Width = 10,
+                  Height = 10,
+                Visibility = PortVisibility.Hidden,
+                  Constraints =PortConstraints.Default,
+                  Offset = new DiagramPoint() { X = 1, Y = 0.5 },
+            },
+        };
+        {
+            List<string> annotationDetails = new List<string> { };
+            string width = "width: 100%;";
+            if (node.AdditionalInfo != null && node.AdditionalInfo.Count > 0 && orgChartPropertyContainer.IsCopy)
+            {
+                var info = node.AdditionalInfo;
+                foreach (KeyValuePair<string, object> keyValuePair in node.AdditionalInfo)
+                {
+                    var nodeID = keyValuePair.Key;
+                    if (!orgChartPropertyContainer.OriginalTextBoxValuesDictionary.ContainsKey(node.ID) && !orgChartPropertyContainer.OriginalCheckBoxValuesDictionary.ContainsKey(node.ID) && !orgChartPropertyContainer.TextBoxDictionary.ContainsKey(node.ID) && !orgChartPropertyContainer.CheckBoxDictionary.ContainsKey(node.ID))
+                    {
+                        var textBox = orgChartPropertyContainer.TextBoxDictionary[nodeID];
+                        var originalTextBox = orgChartPropertyContainer.OriginalTextBoxValuesDictionary[nodeID];
+                        List<string> deleteInformations = new List<string>();
+                        foreach (KeyValuePair<string, string> propertyNames in textBox)
+                        {
+                            deleteInformations.Add(propertyNames.Key);
+                        }
+                        orgChartPropertyContainer.DeleteDictionary.Add(node.ID, deleteInformations);
+                        var checkBox = orgChartPropertyContainer.CheckBoxDictionary[nodeID];
+                        var originalCheckBox = orgChartPropertyContainer.OriginalCheckBoxValuesDictionary[nodeID];
+                        orgChartPropertyContainer.OriginalTextBoxValuesDictionary[node.ID] = (originalTextBox);
+                        orgChartPropertyContainer.OriginalCheckBoxValuesDictionary[node.ID] = originalCheckBox;
+                        orgChartPropertyContainer.TextBoxDictionary[node.ID] = textBox;
+                        orgChartPropertyContainer.CheckBoxDictionary[node.ID] = checkBox;
+                    }
+                    Node newNode = this.Diagram.GetObject(nodeID) as Node;
+                    if (newNode!=null&&newNode.AdditionalInfo.Count > 0)
+                    {
+                        newNode.AdditionalInfo.Clear();
+                    }
+                }
+
+
+            }
+            else
+            {
+                if ((node.AdditionalInfo != null && node.AdditionalInfo.Count > 0 && !orgChartPropertyContainer.IsCopy))
+                {
+                    string tooltip = "";
+                    orgChartPropertyContainer.TextBoxDictionary.Remove(node.ID);
+                    orgChartPropertyContainer.CheckBoxDictionary.Remove(node.ID);
+                    orgChartPropertyContainer.OriginalTextBoxValuesDictionary.Remove(node.ID);
+                    orgChartPropertyContainer.OriginalCheckBoxValuesDictionary.Remove(node.ID);
+                    orgChartPropertyContainer.ApplyDictionary.Remove(node.ID);
+                    Dictionary<string, Dictionary<bool, bool>> dictionary = new Dictionary<string, Dictionary<bool, bool>>();
+                    Dictionary<string, bool> checkBoxValues = new Dictionary<string, bool>();
+                    Dictionary<string, string> textboxValues = new Dictionary<string, string>();
+                    Dictionary<string, bool> originalCheckBoxValues = new Dictionary<string, bool>();
+                    Dictionary<string, string> originalTextboxValues = new Dictionary<string, string>();
+                    bool applyDictionaryValue = false;
+                    List<string> deleteInformation = new List<string>();
+                    foreach (KeyValuePair<string, object> keyValuePair in node.AdditionalInfo)
+                    {
+                        if (keyValuePair.Value != null)
+                        {
+                            string additionalInfo = keyValuePair.Value.ToString();
+                            dictionary = JsonSerializer.Deserialize<Dictionary<string, Dictionary<bool, bool>>>(additionalInfo);
+                            var key = dictionary.Keys.FirstOrDefault();
+                            var values = dictionary.Values.FirstOrDefault();
+
+                            foreach (KeyValuePair<bool, bool> textcheckbox in values)
+                            {
+                                if (textcheckbox.Value)
+                                {
+                                    applyDictionaryValue = textcheckbox.Value;
+                                }
+                                textboxValues.Add(keyValuePair.Key, key);
+                                originalTextboxValues.Add(keyValuePair.Key, key);
+                                originalCheckBoxValues.Add(keyValuePair.Key, textcheckbox.Key);
+                                checkBoxValues.Add(keyValuePair.Key, textcheckbox.Key);
+                                var isChecked = textcheckbox.Key;
+                                if (node.Data == null && isChecked)
+                                {
+                                    tooltip += "<tr><td>" + keyValuePair.Key + "</td><td>:</td><td>" + key + "</td></tr><tr>";
+                                }
+                                deleteInformation.Add(keyValuePair.Key);
+                            }
+                        }
+
+                    }
+                    if (!orgChartPropertyContainer.DeleteDictionary.ContainsKey(node.ID))
+                    {
+                        orgChartPropertyContainer.DeleteDictionary.Add(node.ID, deleteInformation);
+                    }
+                    node.AdditionalInfo.Clear();
+                    if (orgChartPropertyContainer.TextBoxDictionary.ContainsKey(node.ID) && orgChartPropertyContainer.CheckBoxDictionary.ContainsKey(node.ID) && orgChartPropertyContainer.OriginalTextBoxValuesDictionary.ContainsKey(node.ID) && orgChartPropertyContainer.OriginalCheckBoxValuesDictionary.ContainsKey(node.ID))
+                    {
+                        orgChartPropertyContainer.TextBoxDictionary[node.ID] = textboxValues;
+                        orgChartPropertyContainer.CheckBoxDictionary[node.ID] = checkBoxValues;
+                        orgChartPropertyContainer.OriginalTextBoxValuesDictionary[node.ID] = originalTextboxValues;
+                        orgChartPropertyContainer.OriginalCheckBoxValuesDictionary[node.ID] = originalCheckBoxValues;
+                        orgChartPropertyContainer.ApplyDictionary[node.ID] = applyDictionaryValue;
+                    }
+                    else
+                    {
+                        orgChartPropertyContainer.TextBoxDictionary.Add(node.ID, textboxValues);
+                        orgChartPropertyContainer.CheckBoxDictionary.Add(node.ID, checkBoxValues);
+                        orgChartPropertyContainer.OriginalTextBoxValuesDictionary.Add(node.ID, originalTextboxValues);
+                        orgChartPropertyContainer.OriginalCheckBoxValuesDictionary.Add(node.ID, originalCheckBoxValues);
+                        orgChartPropertyContainer.ApplyDictionary.Add(node.ID, applyDictionaryValue);
+                        orgChartPropertyContainer.IsAdditionalInfo = true;
+
+                    }
+                    if (node.Data != null)
+                    {
+                        OrgChartDetails orgChartDetails =JsonSerializer.Deserialize<OrgChartDetails>(node.Data.ToString());
+                        node.Data = orgChartDetails;
+                        var data = node.Data as OrgChartDetails;
+                        string image=(node.Shape is ImageShape)?(node.Shape as ImageShape).Source:"";
+                        node.Tooltip = new DiagramTooltip() { Template = "<table" + " style=" + width + "><tr><td>Name</td><td>:</td><td>" + data.Name + "</td></tr><tr><td>Role</td><td>:</td><td>" + data.Role + "</td></tr><tr><td>Email</td><td>:</td><td>" + data.Email + "</td></tr><tr><td>Department</td><td>:</td><td>" + data.Department + "</td></tr><tr><td>EmployeeID</td><td>:</td><td>" + data.EmployeeID + "</td></tr><tr><td>SupervisorID</td><td>:</td><td>" + data.SupervisorID + "</td></tr><tr><td>SupervisorName</td><td>:</td><td>" + data.SupervisorName + "</td></tr><tr><td>Location</td><td>:</td><td>" + data.Location + "</td></tr><tr><td>Phone</td><td>:</td><td>" + data.Phone + "</td></tr><tr><td>ImageURL</td><td>:</td><td>" + image + "</td></tr></table>", Position = Syncfusion.Blazor.Popups.Position.BottomCenter };
+                    }
+                    else
+                    {
+                        node.Tooltip = new DiagramTooltip() { Template = "<table" + " style=" + width + ">" + tooltip + "</table>", Position = Syncfusion.Blazor.Popups.Position.BottomCenter };
+                    }
+                }
+
+            }
+
+            if (node.Data == null && node.AdditionalInfo != null && node.AdditionalInfo.Count == 0)
+            {
+
+                if (!orgChartPropertyContainer.TextBoxDictionary.ContainsKey(node.ID) && !orgChartPropertyContainer.CheckBoxDictionary.ContainsKey(node.ID))
+                {
+                    string tooltipValue = "";
+                    orgChartPropertyContainer.ApplyDictionary.Add(node.ID, false);
+                    Dictionary<string, string> textBoxValues = new Dictionary<string, string>();
+                    Dictionary<string, bool> checkBoxValues = new Dictionary<string, bool>();
+                    Dictionary<string, string> originalDictionaryTextBoxValues = new Dictionary<string, string>();
+                    Dictionary<string, bool> originalDictionaryCheckBoxValues = new Dictionary<string, bool>();
+                    List<string> deleteInformation = new List<string>();
+                    EditUserHandlePropertyPanel editUserHandlePropertyPanelDetails = new EditUserHandlePropertyPanel();
+                    editUserHandlePropertyPanelDetails.PropertyName = "Name";
+                    editUserHandlePropertyPanelDetails.PropertyValue = "Name";
+                    editUserHandlePropertyPanelDetails.IsChecked = true;
+
+                    tooltipValue += "<tr><td>" + editUserHandlePropertyPanelDetails.PropertyName + "</td><td>:</td><td>" + editUserHandlePropertyPanelDetails.PropertyValue + "</td></tr><tr>";
+                    deleteInformation.Add(editUserHandlePropertyPanelDetails.PropertyName);
+                    textBoxValues.Add(editUserHandlePropertyPanelDetails.PropertyName, editUserHandlePropertyPanelDetails.PropertyValue);
+                    checkBoxValues.Add(editUserHandlePropertyPanelDetails.PropertyName, editUserHandlePropertyPanelDetails.IsChecked);
+                    originalDictionaryTextBoxValues.Add(editUserHandlePropertyPanelDetails.PropertyName, editUserHandlePropertyPanelDetails.PropertyValue);
+                    originalDictionaryCheckBoxValues.Add(editUserHandlePropertyPanelDetails.PropertyName, editUserHandlePropertyPanelDetails.IsChecked);
+                    if ((orgChartPropertyContainer.Templatevalue == "None" && orgChartPropertyContainer.OrgChartStyle == "Style2") || (orgChartPropertyContainer.Templatevalue == "None" && orgChartPropertyContainer.OrgChartStyle == "Style3"))
+                    {
+                        editUserHandlePropertyPanelDetails.PropertyName = "Role";
+                        editUserHandlePropertyPanelDetails.PropertyValue = "Role";
+                        editUserHandlePropertyPanelDetails.IsChecked = true;
+                        tooltipValue += "<tr><td>" + editUserHandlePropertyPanelDetails.PropertyName + "</td><td>:</td><td>" + editUserHandlePropertyPanelDetails.PropertyValue + "</td></tr><tr>";
+                        deleteInformation.Add(editUserHandlePropertyPanelDetails.PropertyName);
+                        textBoxValues.Add(editUserHandlePropertyPanelDetails.PropertyName, editUserHandlePropertyPanelDetails.PropertyValue);
+                        checkBoxValues.Add(editUserHandlePropertyPanelDetails.PropertyName, editUserHandlePropertyPanelDetails.IsChecked);
+                        originalDictionaryTextBoxValues.Add(editUserHandlePropertyPanelDetails.PropertyName, editUserHandlePropertyPanelDetails.PropertyValue);
+                        originalDictionaryCheckBoxValues.Add(editUserHandlePropertyPanelDetails.PropertyName, editUserHandlePropertyPanelDetails.IsChecked);
+                    }
+
+
+                    editUserHandlePropertyPanelDetails.PropertyName = "Version";
+                    editUserHandlePropertyPanelDetails.PropertyValue = "";
+                    editUserHandlePropertyPanelDetails.IsChecked = false;
+                    deleteInformation.Add(editUserHandlePropertyPanelDetails.PropertyName);
+                    textBoxValues.Add(editUserHandlePropertyPanelDetails.PropertyName, editUserHandlePropertyPanelDetails.PropertyValue);
+                    checkBoxValues.Add(editUserHandlePropertyPanelDetails.PropertyName, editUserHandlePropertyPanelDetails.IsChecked);
+                    originalDictionaryTextBoxValues.Add(editUserHandlePropertyPanelDetails.PropertyName, editUserHandlePropertyPanelDetails.PropertyValue);
+                    originalDictionaryCheckBoxValues.Add(editUserHandlePropertyPanelDetails.PropertyName, editUserHandlePropertyPanelDetails.IsChecked);
+                    if (node.Shape is ImageShape)
+                    {
+                        editUserHandlePropertyPanelDetails.PropertyName = "ImageURL";
+                        editUserHandlePropertyPanelDetails.PropertyValue = (node.Shape as ImageShape).Source;
+                        editUserHandlePropertyPanelDetails.IsChecked = true;
+                        tooltipValue += "<tr><td>" + editUserHandlePropertyPanelDetails.PropertyName + "</td><td>:</td><td>" + editUserHandlePropertyPanelDetails.PropertyValue + "</td></tr><tr>";
+                        textBoxValues.Add(editUserHandlePropertyPanelDetails.PropertyName, editUserHandlePropertyPanelDetails.PropertyValue);
+                        checkBoxValues.Add(editUserHandlePropertyPanelDetails.PropertyName, editUserHandlePropertyPanelDetails.IsChecked);
+                        originalDictionaryTextBoxValues.Add(editUserHandlePropertyPanelDetails.PropertyName, editUserHandlePropertyPanelDetails.PropertyValue);
+                        originalDictionaryCheckBoxValues.Add(editUserHandlePropertyPanelDetails.PropertyName, editUserHandlePropertyPanelDetails.IsChecked);
+                    }
+                    orgChartPropertyContainer.TextBoxDictionary.Add(node.ID, textBoxValues);
+                    orgChartPropertyContainer.CheckBoxDictionary.Add(node.ID, checkBoxValues);
+                    orgChartPropertyContainer.OriginalTextBoxValuesDictionary.Add(node.ID, originalDictionaryTextBoxValues);
+                    orgChartPropertyContainer.OriginalCheckBoxValuesDictionary.Add(node.ID, originalDictionaryCheckBoxValues);
+                    orgChartPropertyContainer.DeleteDictionary.Add(node.ID, deleteInformation);
+                    node.Tooltip = new DiagramTooltip() { Template = "<table" + " style=" + width + ">" + tooltipValue + "</table>", Position = Syncfusion.Blazor.Popups.Position.BottomCenter };
+
+
+                }
+
+            }
+            if ( orgChartPropertyContainer.IsLayout && node.Data != null && node.AdditionalInfo != null && node.AdditionalInfo.Count == 0)
+            {
+                annotationDetails = new List<string>();
+                var data = node.Data as OrgChartDetails;
+
+                if (data != null && orgChartPropertyContainer.Templatevalue != "template1" && orgChartPropertyContainer.Templatevalue != "template2" && orgChartPropertyContainer.IsUploader || ((data != null && orgChartPropertyContainer.IsUploader && orgChartPropertyContainer.IsUploderFirstTime)))
+                {
+                    node.Shape = new ImageShape { Type = NodeShapes.Image, Source = data.ImageURL, ImageAlign = ImageAlignment.XMinYMin, Scale = DiagramScale.None };
+                }
+                bool isApply = false;
+                if (orgChartPropertyContainer.ApplyDictionary.ContainsKey(node.ID))
+                {
+                    isApply = orgChartPropertyContainer.ApplyDictionary[node.ID];
+                }
+                if (Parent.MenuBar.IsOpenClick||(!isApply &&node.Data!=null))
+                {
+                    foreach (KeyValuePair<string, bool> keyValues in orgChartPropertyContainer.DataSourceDictionary)
+                    {
+                        if (keyValues.Value && data != null)
+                        {
+                            UpdateAnnotation(node, keyValues.Key,annotationDetails);
+                        }
+
+                    }
+                }
+                var annotations = new DiagramObjectCollection<ShapeAnnotation>();
+                for (var i = 0; i < annotationDetails.Count; i++)
+                {
+                    var content = annotationDetails[i];
+                    var annotation1 = new ShapeAnnotation() { Content = content != null ? content.ToString() : "" };
+                    annotation1.Style = new TextStyle() { FontSize = 10 };
+                    await annotations.AddAsync(annotation1);
+                }
+                if (annotations.Count > 0)
+                {
+                    node.Annotations = annotations;
+                }
+                orgChartPropertyContainer.UpdateAnnotationStyle(node);
+                if (data != null && !orgChartPropertyContainer.IsAddNode)
+                {
+                    string image=(node.Shape is ImageShape)?(node.Shape as ImageShape).Source:"";
+                    node.Tooltip = new DiagramTooltip() { Template = "<table" + " style=" + width + "><tr><td>Name</td><td>:</td><td>" + data.Name + "</td></tr><tr><td>Role</td><td>:</td><td>" + data.Role + "</td></tr><tr><td>Email</td><td>:</td><td>" + data.Email + "</td></tr><tr><td>Department</td><td>:</td><td>" + data.Department + "</td></tr><tr><td>EmployeeID</td><td>:</td><td>" + data.EmployeeID + "</td></tr><tr><td>SupervisorID</td><td>:</td><td>" + data.SupervisorID + "</td></tr><tr><td>SupervisorName</td><td>:</td><td>" + data.SupervisorName + "</td></tr><tr><td>Location</td><td>:</td><td>" + data.Location + "</td></tr><tr><td>Phone</td><td>:</td><td>" + data.Phone + "</td></tr><tr><td>ImageURL</td><td>:</td><td>" + image + "</td></tr></table>", Position = Syncfusion.Blazor.Popups.Position.BottomCenter };
+                }
+                Dictionary<string, object> properties = new Dictionary<string, object>();
+                Dictionary<string, string> textBoxValues = new Dictionary<string, string>();
+                Dictionary<string, bool> checkBoxValues = new Dictionary<string, bool>();
+                EditUserHandlePropertyPanel editUserHandlePropertyPanelDetails = new EditUserHandlePropertyPanel();
+                if (!isApply)
+                {
+                    foreach (KeyValuePair<string, bool> keyValue in orgChartPropertyContainer.DataSourceDictionary)
+                    {
+                        editUserHandlePropertyPanelDetails.PropertyName = keyValue.Key;
+                        editUserHandlePropertyPanelDetails.IsChecked = keyValue.Value;
+                        UpdateTextfield(node, keyValue.Key, textBoxValues);
+                        checkBoxValues.Add(editUserHandlePropertyPanelDetails.PropertyName, editUserHandlePropertyPanelDetails.IsChecked);
+                    }
+                    if (orgChartPropertyContainer.TextBoxDictionary.ContainsKey(node.ID) && orgChartPropertyContainer.OriginalCheckBoxValuesDictionary.ContainsKey(node.ID) && orgChartPropertyContainer.CheckBoxDictionary.ContainsKey(node.ID) && orgChartPropertyContainer.OriginalCheckBoxValuesDictionary.ContainsKey(node.ID))
+                    {
+                        if (!orgChartPropertyContainer.IsAddNode)
+                        {
+                            orgChartPropertyContainer.TextBoxDictionary[node.ID] = (textBoxValues);
+                            orgChartPropertyContainer.CheckBoxDictionary[node.ID] = (checkBoxValues);
+                            orgChartPropertyContainer.OriginalTextBoxValuesDictionary[node.ID] = (textBoxValues);
+                            orgChartPropertyContainer.OriginalCheckBoxValuesDictionary[node.ID] = (checkBoxValues);
+                        }
+                    }
+                    else
+                    {
+                        orgChartPropertyContainer.TextBoxDictionary.Add(node.ID, textBoxValues);
+                        orgChartPropertyContainer.CheckBoxDictionary.Add(node.ID, checkBoxValues);
+                        orgChartPropertyContainer.OriginalTextBoxValuesDictionary.Add(node.ID, textBoxValues);
+                        orgChartPropertyContainer.OriginalCheckBoxValuesDictionary.Add(node.ID, checkBoxValues);
+                        orgChartPropertyContainer.ApplyDictionary.Add(node.ID, true);
+                    }
+                }
+                orgChartPropertyContainer.UpdateAnnotationPosition(node);
+                node.Style.Fill = "#88C65C";
+                node.Style.StrokeColor = "#88C65C";
+            }
+            foreach (ShapeAnnotation annotation in node.Annotations)
+            {
+                annotation.Constraints = AnnotationConstraints.ReadOnly;
+            }
+            node.Constraints = NodeConstraints.Default | NodeConstraints.Tooltip;
+            if (node.AdditionalInfo != null)
+            {
+                node.AdditionalInfo.Clear();
+            }
+        }
+    }
+    /// <summary>
+    /// A public method to update text fields for a given node in the diagram.
+    /// </summary>
+    /// <param name="node">The node to update the text fields for.</param>
+    /// <param name="key">The key representing the field to update.</param>
+    /// <param name="properties">The dictionary of properties to update.</param>
+    public void UpdateTextfield(Node node, string key,Dictionary<string, string> properties)
+    {
+        var data = node.Data as OrgChartDetails;
+        if(data != null)
+        {
+            switch (key)
+            {
+                case "Name":
+                    if(data.Name != null){
+                        properties.Add("Name", data.Name);
+                    }
+                    break;
+                case "EmployeeID":
+                    if (data.EmployeeID != null)
+                    {
+                        properties.Add("EmployeeID", data.EmployeeID);
+                    }
+                    break;
+                case "Email":
+                    if (data.Email != null)
+                    {
+                        properties.Add("Email", data.Email);
+                    }
+                    break;
+                case "ImageURL":
+                    if(data.ImageURL!=null)
+                    {
+                        properties.Add("ImageURL", data.ImageURL);
+                    }
+                    break;
+                case "Location":
+                    if (data.Location!=null)
+                    {
+                        properties.Add("Location", data.Location);
+                    }
+                    break;
+                case "Phone":
+                    if(data.Phone!=null){
+                        properties.Add("Phone", data.Phone);
+                    }
+                    break;
+
+                case "SupervisorName":
+                    if(data.SupervisorName!=null){
+                        properties.Add("SupervisorName", data.SupervisorName);
+                    }
+                    break;
+                case "SupervisorID":
+                    if(data.SupervisorID!=null){
+                        properties.Add("SupervisorID", data.SupervisorID);
+                    }
+                    break;
+                case "Role":
+                    if (data.Role != null) {
+                        properties.Add("Role", data.Role);
+                    }
+                    break;
+                case "Department":
+                    if(data.Department!=null){
+                        properties.Add("Department", data.Department);
+                    }
+                    break;
+            }
+
+
+        }
+    }
+    /// <summary>
+    /// A public method to update annotations for a given node in the diagram.
+    /// </summary>
+    /// <param name="node">The node to update annotations for.</param>
+    /// <param name="key">The key representing the annotation to update.</param>
+    /// <param name="annotationDetails">The list of annotation details.</param>
+    public void UpdateAnnotation(Node node, string key, List<string> annotationDetails)
+    {
+        var data = node.Data as OrgChartDetails;
+        if(data != null){
+            switch (key)
+            {
+                case "Name":
+                    if(data.Name != null){
+                        annotationDetails.Add(data.Name);
+                    }
+                    break;
+                case "EmployeeID":
+                    if(data.EmployeeID != null){
+                        annotationDetails.Add(data.EmployeeID);
+                    }
+                    break;
+                case "Email":
+                    if(data.Email != null){
+                        annotationDetails.Add(data.Email);
+                    }
+                    break;
+                case "ImageURL":
+                    if(data.ImageURL != null){
+                        annotationDetails.Add(data.ImageURL);
+                    }
+                    break;
+                case "Location":
+                    if(data.Location != null){
+                        annotationDetails.Add(data.Location);
+                    }
+                    break;
+                case "Phone":
+                    if(data.Phone != null){
+                        annotationDetails.Add(data.Phone);
+                    }
+                    break;
+
+                case "SupervisorName":
+                    if(data.SupervisorName != null){
+                        annotationDetails.Add(data.SupervisorName);
+                    }
+                    break;
+                case "SupervisorID":
+                    if(data.SupervisorID != null){
+                        annotationDetails.Add(data.SupervisorID);
+                    }
+                    break;
+                case "Role":
+                    if(data.Role != null){
+                        annotationDetails.Add(data.Role);
+                    }
+                    break;
+                case "Department":
+                    if(data.Department != null){
+                        annotationDetails.Add(data.Department);
+                    }
+                    break;
+            }
+
+        }
+    }
+    /// <summary>
+    /// A private method to set default properties for a connector in the diagram.
+    /// </summary>
+    /// <param name="obj">The diagram object (connector) to apply default properties to.</param>
+    private void ConnectorDefaults(IDiagramObject obj)
+    {
+        if (obj != null && obj is Connector)
+        {
+            Connector connector = obj as Connector;
+            connector.Constraints = ConnectorConstraints.Default & ~ConnectorConstraints.Select;
+        }
+    }
+    /// <summary>
+    /// A private asynchronous method called when the selection in the diagram changes.
+    /// </summary>
+    /// <param name="args">The selection changed event arguments.</param>
+    private void SelectionChanged(Syncfusion.Blazor.Diagram.SelectionChangedEventArgs args)
+    {
+        bool hasContinuousDraw = Diagram.InteractionController.HasFlag(DiagramInteractions.ContinuousDraw);
+        if ((!hasContinuousDraw) || (hasContinuousDraw && Diagram.DrawingObject != null && args.NewValue.Count > 0))
+        {
+            Parent.Toolbar.EnableToolbarItems(args.NewValue, "selectionchange");
+            if (Diagram.SelectionSettings.Nodes.Count > 0 || (Diagram.SelectionSettings.Connectors.Count > 0))
+            {
+                if (Diagram.SelectionSettings.Nodes.Count == 1)
+                {
+                   
+                    Diagram.SelectionSettings.UserHandles[0].Visible = true;
+                    Diagram.SelectionSettings.UserHandles[1].Visible = true;
+                    if (Diagram.SelectionSettings.Nodes[0].ID == "rootNode")
+                    {
+                        Diagram.SelectionSettings.UserHandles[2].Visible = false;
+                    }
+                    else
+                    {
+                        Diagram.SelectionSettings.UserHandles[2].Visible = true;
+                    }
+                   
+
+                }
+                else
+                {
+                    Diagram.SelectionSettings.UserHandles[0].Visible = false;
+                    Diagram.SelectionSettings.UserHandles[1].Visible = false;
+                    Diagram.SelectionSettings.UserHandles[2].Visible = false;
+                }
+            }
+        }
+        StateHasChanged();
+    }
+    private void OnHistoryAdding(HistoryAddingEventArgs entry)
+    {
+        if (Parent.MenuBar.OpenClick)
+        {
+            entry.Cancel = true;
+        }
+
+    }
+    /// <summary>
+    /// A private asynchronous method called when the history in the diagram changes.
+    /// </summary>
+    /// <param name="args">The history changed event arguments.</param>
+    private void HistoryChange(HistoryChangedEventArgs args)
+    {
+
+        Parent.Toolbar.EnableToolbarItems(new object() { }, "historychange");
+    }
+    /// <summary>
+    /// A private method called when the scroll position of the diagram changes.
+    /// </summary>
+    /// <param name="args">The scroll changed event arguments.</param>
+    private void ScrollChanged(ScrollChangedEventArgs args)
+    {
+        if((Parent.DiagramContent.CurrentZoom >= 0.25 && Parent.DiagramContent.CurrentZoom <= 30) && Parent.Toolbar.ZoomItemDropdownContent != FormattableString.Invariant($"{Math.Round(Parent.DiagramContent.CurrentZoom * 100)}") + "%")
+        {
+            Parent.Toolbar.DiagramZoomValueChange();
+        }
+    }
+    /// <summary>
+    /// Updates the current diagram tool to ZoomPan.
+    /// </summary>
+    public void UpdateTool()
+    {
+        DiagramTool = DiagramInteractions.ZoomPan;
+        StateHasChanged();
+    }
+    /// <summary>
+    /// Updates the current diagram tool to SingleSelect or MultipleSelect for pointer operations.
+    /// </summary>
+    public void UpdatePointerTool()
+    {
+        DiagramTool = DiagramInteractions.SingleSelect | DiagramInteractions.MultipleSelect;
+        StateHasChanged();
+    }
+    /// <summary>
+    /// Zooms the diagram to a specific zoom factor based on the provided options.
+    /// </summary>
+    /// <param name="options">The zoom options specifying the zoom factor and zoom type (ZoomIn or ZoomOut).</param>
+    public void ZoomTo(ZoomOptions options)
+    {
+        double factor = options.ZoomFactor != 0 ? options.ZoomFactor : 0.2;
+        factor = options.Type == "ZoomOut" ? 1 / (1 + factor) : (1 + factor);
+        Diagram.Zoom(factor, null);
+    }
+    /// <summary>
+    /// Represents the options for zooming the diagram.
+    /// </summary>
+    public class ZoomOptions
+    {
+        /// <summary>
+        /// Gets or sets the zoom factor to apply.
+        /// </summary>
+        public double ZoomFactor { get; set; }
+        /// <summary>
+        /// Gets or sets the type of zoom (ZoomIn or ZoomOut).
+        /// </summary>
+        public string Type { get; set; }
+    }
+    /// <summary>
+    /// Refreshes the diagram's state to update the changes.
+    /// </summary>
+    public void StateChanged()
+    {
+        StateHasChanged();
+    }
+    /// <summary>
+    /// Updates the spacing between nodes in the diagram based on the provided value and type (Horizontal or Vertical).
+    /// </summary>
+    /// <param name="value">The spacing value to apply.</param>
+    /// <param name="type">The type of spacing (Horizontal or Vertical).</param>
+    public async Task UpdateSpacing(int value, string type)
+    {
+        SfDiagramComponent diagram = Parent.DiagramContent.Diagram;
+        diagram.BeginUpdate();
+        if (type == "Horizontal")
+            HorizontalSpacing = value;
+        else if (type == "Vertical")
+            VerticalSpacing = value;
+        await diagram.EndUpdate();
+    }
+    /// <summary>
+    /// Updates the alignment of nodes in the diagram based on the provided alignment type.
+    /// </summary>
+    /// <param name="alignment">The alignment type (e.g., Align Left, Align Right, Align Center, etc.).</param>
+    public async Task UpdateAlignment(string alignment)
+    {        
+        SfDiagramComponent diagram = Parent.DiagramContent.Diagram;
+        diagram.BeginUpdate();
+        switch (alignment)
+        {
+            case "Align Left":
+                horizontalAlignment = HorizontalAlignment.Left;
+                break;
+            case "Align Right":
+                horizontalAlignment = HorizontalAlignment.Right;
+                break;
+            case "Align Center":
+                horizontalAlignment = HorizontalAlignment.Center;
+                break;
+            case "Align Top":
+                verticalAlignment = VerticalAlignment.Top;
+                break;
+            case "Align Middle":
+                verticalAlignment = VerticalAlignment.Center;
+                break;
+            case "Align Bottom":
+                verticalAlignment = VerticalAlignment.Bottom;
+                break;
+        }
+        await diagram.EndUpdate();
+    }
+    /// <summary>
+    /// Determines whether this custom command can be executed or not.
+    /// </summary>
+    /// <param name="args">The command key arguments.</param>
+    public void CanExecute(CommandKeyArgs args)
+    {
+        args.CanExecute = true;
+    }
+    /// <summary>
+    /// Executes the custom command based on the provided command key arguments.
+    /// </summary>
+    /// <param name="obj">The command key arguments containing the name of the command.</param>
+    public async Task ExecuteCommand(CommandKeyArgs obj)
+    {
+        OrgChartPropertyContainer orgChartPropertyContainer = Parent.OrgChartPropertyPanel;
+        {
+            if (obj.Name == "addChild")
+            {
+                await orgChartPropertyContainer.AddNode(Diagram.SelectionSettings.Nodes[0].ID);
+            }
+            if (obj.Name == "navigationDown")
+            {
+                orgChartPropertyContainer.NavigateChild("Bottom");
+            }
+            if (obj.Name == "navigationUp")
+            {
+                orgChartPropertyContainer.NavigateChild("Top");
+            }
+            if (obj.Name == "navigationLeft")
+            {
+                orgChartPropertyContainer.NavigateChild("Left");
+            }
+            if (obj.Name == "navigationRight")
+            {
+                orgChartPropertyContainer.NavigateChild("Right");
+            }
+            if (obj.Name == "childToSameLevel")
+            {
+                orgChartPropertyContainer.ChildToSameLevel();
+            }
+            if (obj.Name == "changeChildParent")
+            {
+                await orgChartPropertyContainer.ChangeChildParent();
+            }
+            if (obj.Name == "showShortCut")
+            {
+                Parent.ShowHideShortcutKey();
+            }
+            if (obj.Name == "undo")
+            {
+                await orgChartPropertyContainer.UndoRedoLayout(true);
+            }
+            if (obj.Name == "redo")
+            {
+                await orgChartPropertyContainer.UndoRedoLayout(false);
+            }
+            if (obj.Name == "copy")
+            {
+                Parent.MenuBar.enablePasteButten = true;
+                Parent.MenuBar.CopyEditUserHandleDetails(this.Diagram);
+                orgChartPropertyContainer.IsCopy = true;
+                Diagram.Copy();
+                Parent.MenuBar.StateChanged();
+            }
+            if (obj.Name == "delete")
+            {
+                bool GroupAction = false;
+                Diagram.BeginUpdate();
+                if (Diagram.SelectionSettings.Nodes.Count > 1 || Diagram.SelectionSettings.Connectors.Count > 1 || ((Diagram.SelectionSettings.Nodes.Count + Diagram.SelectionSettings.Connectors.Count) > 1))
+                {
+                    GroupAction = true;
+                }
+                if (GroupAction)
+                {
+                    Diagram.StartGroupAction();
+                }
+                if (Diagram.SelectionSettings.Nodes.Count != 0)
+                {
+                    for (var i = Diagram.SelectionSettings.Nodes.Count - 1; i >= 0; i--)
+                    {
+                        var item = Diagram.SelectionSettings.Nodes[i];
+                        if (item.ID != "rootNode")
+                        {
+                            Diagram.Nodes.Remove(item);
+                        }
+                    }
+                }
+                if (Diagram.SelectionSettings.Connectors.Count != 0)
+                {
+                    for (var i = Diagram.SelectionSettings.Connectors.Count - 1; i >= 0; i--)
+                    {
+                        var item1 = Diagram.SelectionSettings.Connectors[i];
+
+                        Diagram.Connectors.Remove(item1);
+                    }
+                }
+                if (GroupAction)
+                {
+                    Diagram.EndGroupAction();
+                }
+                await Diagram.EndUpdate();
+            }
+            if (obj.Name == "cut")
+            {
+                Parent.MenuBar.enablePasteButten = true;
+                Parent.MenuBar.CopyEditUserHandleDetails(Diagram);
+                this.Diagram.Cut();
+                orgChartPropertyContainer.IsCopy = true;
+                Parent.MenuBar.StateChanged();
+            }
+            if (obj.Name == "delete")
+            {
+                bool GroupAction = false;
+                Diagram.BeginUpdate();
+                if (Diagram.SelectionSettings.Nodes.Count > 1 || Diagram.SelectionSettings.Connectors.Count > 1 || ((Diagram.SelectionSettings.Nodes.Count + Diagram.SelectionSettings.Connectors.Count) > 1))
+                {
+                    GroupAction = true;
+                }
+                if (GroupAction)
+                {
+                    Diagram.StartGroupAction();
+                }
+                if (Diagram.SelectionSettings.Nodes.Count != 0)
+                {
+                    for (var i = Diagram.SelectionSettings.Nodes.Count - 1; i >= 0; i--)
+                    {
+                        var item = Diagram.SelectionSettings.Nodes[i];
+                        if (item.ID != "rootNode"){
+                            Diagram.Nodes.Remove(item);
+                        }
+                    }
+                }
+                if (Diagram.SelectionSettings.Connectors.Count != 0)
+                {
+                    for (var i = Diagram.SelectionSettings.Connectors.Count - 1; i >= 0; i--)
+                    {
+                        var item1 = Diagram.SelectionSettings.Connectors[i];
+
+                        Diagram.Connectors.Remove(item1);
+                    }
+                }
+                if (GroupAction)
+                {
+                    Diagram.EndGroupAction();
+                }
+                await Diagram.EndUpdate();
+            }
+            if (obj.Name == "paste")
+            {
+                Diagram.Paste();
+            }
+        }
+        {
+            if ((Diagram.SelectionSettings.Nodes.Count > 0 || Diagram.SelectionSettings.Connectors.Count > 0))
+            {
+                if (obj.Name == "duplicate")
+                {
+                    Diagram.Copy();
+                    Diagram.Paste();
+                }
+
+            }
+        }
+        if (obj.Name == "fileNew")
+        {
+            await Parent.MenuBar.UpdateDiagram(Diagram);
+        }
+        if (obj.Name == "fileOpen")
+        {
+            Parent.MenuBar.IsOpenClick = true;
+            await Parent.MenuBar.OpenUploadBox(true, ".json");
+        }
+        if (obj.Name == "fileSave")
+        {
+            Parent.MenuBar.SaveEditUserHandleDetails(this.Diagram);
+            if (jsRuntime != null)
+            {
+                string fileName = await jsRuntime.InvokeAsync<string>("getDiagramFileName", "");
+                await Parent.MenuBar.Download(fileName);
+            }
+        }
+    }
+    /// <summary>
+    /// Retrieves the layout information for the given diagram object.
+    /// </summary>
+    /// <param name="obj">The diagram object for which layout information is being retrieved.</param>
+    /// <param name="options">The tree layout information.</param>
+    /// <returns>The updated tree layout information.</returns>
+    private TreeInfo getLayoutInfo(IDiagramObject obj, TreeInfo options)
+    {
+        if (!options.HasSubTree)
+        {
+            options.Orientation = Parent.OrgChartPropertyPanel.SubTreeOrientation;
+            options.AlignmentType = Parent.OrgChartPropertyPanel.SubTreeAlignment;
+        }
+        return options;  
+    }
+
+    /// <summary>
+    /// Gets a custom tool based on the action and identifier.
+    /// </summary>
+    /// <param name="action">The diagram element action (e.g., Drag, Edit, etc.).</param>
+    /// <param name="id">The identifier of the custom tool.</param>
+    /// <returns>The custom interaction controller for the given action and identifier.</returns>
+    public InteractionControllerBase GetCustomTool(DiagramElementAction action, string id)
+    {
+        InteractionControllerBase tool = null;
+        if (id == "OrgAddHandle")
+        {
+            tool = new OrgAddHandleTool(Parent.DiagramContent.Diagram, Parent);
+        }
+        else if (id == "OrgRemoveHandle")
+        {
+            tool = new OrgRemoveHandleTool(Parent.DiagramContent.Diagram, Parent);
+        }
+        else if (id == "OrgEditHandle")
+        {
+            tool = new OrgEditHandleTool(Parent.DiagramContent.Diagram, Parent);
+        }
+        return tool;
+    }
+    /// <summary>
+    /// Represents a custom tool for adding handles to the organization chart.
+    /// </summary>
+    public class OrgAddHandleTool : DragController
+    {
+        SfDiagramComponent diagram;
+        DiagramMain parent;
+        /// <summary>
+        /// Initializes a new instance of the <see cref="OrgAddHandleTool"/> class.
+        /// </summary>
+        /// <param name="diagram">The diagram component.</param>
+        /// <param name="parent">The parent diagram main.</param>
+        public OrgAddHandleTool(SfDiagramComponent Diagram, DiagramMain Parent) : base(Diagram)
+        {
+            diagram = Diagram;
+            parent = Parent;
+        }
+        /// <summary>
+        /// Handles the mouse down event for the custom tool.
+        /// </summary>
+        /// <param name="args">The mouse event arguments.</param>
+        public override async void OnMouseDown(DiagramMouseEventArgs args)
+        {
+            await parent.DiagramContent.AddRemoveOrgChartNode("AddNode");
+        }
+    }
+    /// <summary>
+    /// Represents a custom tool for removing handles from the organization chart.
+    /// </summary>
+    public class OrgRemoveHandleTool : DragController
+    {
+        SfDiagramComponent diagram;
+        DiagramMain parent;
+        Node deleteObject = null;
+        public OrgRemoveHandleTool(SfDiagramComponent Diagram, DiagramMain Parent) : base(Diagram)
+        {
+            diagram = Diagram;
+            parent = Parent;
+        }
+        public override void OnMouseDown(DiagramMouseEventArgs args)
+        {
+            deleteObject = (diagram.SelectionSettings.Nodes[0]) as Node;
+        }
+        public override async void OnMouseUp(DiagramMouseEventArgs args)
+        {
+            if (deleteObject != null)
+            {
+                await parent.DiagramContent.AddRemoveOrgChartNode("DeleteNode");
+            }
+            base.OnMouseUp(args);
+            this.InAction = true;
+        }
+    }
+    /// <summary>
+    /// A custom drag controller tool for editing handles in the organizational chart diagram.
+    /// </summary>
+    public class OrgEditHandleTool : DragController
+    {
+        SfDiagramComponent diagram;
+        DiagramMain parent;
+        /// <summary>
+        /// Initializes a new instance of the <see cref="OrgEditHandleTool"/> class.
+        /// </summary>
+        /// <param name="Diagram">The organizational chart diagram component.</param>
+        /// <param name="Parent">The parent diagram main component.</param>
+        public OrgEditHandleTool(SfDiagramComponent Diagram, DiagramMain Parent) : base(Diagram)
+        {
+            diagram = Diagram;
+            parent = Parent;
+        }
+        /// <summary>
+        /// Overrides the method that is called when the mouse button is released after a drag operation over the diagram.
+        /// </summary>
+        /// <param name="args">The event arguments containing information about the mouse up event.</param>
+        public override async void OnMouseUp(DiagramMouseEventArgs args)
+        {
+            await parent.DiagramContent.AddRemoveOrgChartNode("EditNode");
+            base.OnMouseUp(args);
+            this.InAction = true;
+        }
+    }
+    /// <summary>
+    /// Adds, removes, or edits nodes in the organizational chart based on the specified type.
+    /// </summary>
+    /// <param name="type">The type of action to be performed (AddNode, DeleteNode, EditNode).</param>
+    /// <returns>A task representing the asynchronous operation.</returns>
+    private async Task AddRemoveOrgChartNode(string type)
+    {
+        OrgChartPropertyContainer  orgChartPropertyContainer = Parent.OrgChartPropertyPanel;
+        if(type=="AddNode")
+        {
+            await orgChartPropertyContainer.AddNode(Diagram.SelectionSettings.Nodes[0].ID);
+        }
+        else if (type == "DeleteNode")
+        {
+            await orgChartPropertyContainer.RemoveChildNode();
+        }
+        else
+        {
+            orgChartPropertyContainer.EditHandle();
+        }
+    }
+    /// <summary>
+    /// Generates a random ID string.
+    /// </summary>
+    /// <returns>A randomly generated ID string.</returns>
+    public string RandomId()
+    {
+        Random random = new Random();
+        const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXTZabcdefghiklmnopqrstuvwxyz";
+#pragma warning disable CA5394 // Do not use insecure randomness
+        return new string(Enumerable.Repeat(chars, 5)
+          .Select(s => s[random.Next(s.Length)]).ToArray());
+#pragma warning restore CA5394 // Do not use insecure randomness
+    }
+    /// <summary>
+    /// Called when the diagram is created.
+    /// </summary>
+    /// <param name="args">The event arguments containing information about the created object.</param>
+    private void Created(object args)
+    {
+        this.Parent.Toolbar.OrgChartToolBarVisibility = "block";
+        Diagram.Select(new ObservableCollection<IDiagramObject>() { Diagram.Nodes[0] });
+    }
+}

@@ -1,0 +1,10 @@
+diff a/Common/Pages/OrgChartPropertyContainer.razor b/Common/Pages/OrgChartPropertyContainer.razor	(rejected hunks)
+@@ -412,7 +412,7 @@
+     /// <summary>
+     /// Reference to the SfDropDownList used for supervisor selection.
+     /// </summary>
+-    private SfDropDownList<string, string> supervisorDropdownList;
++    private SfDropDownList<string, string>? supervisorDropdownList;
+ 
+     /// <summary>
+     /// Reference to the SfDialog component.

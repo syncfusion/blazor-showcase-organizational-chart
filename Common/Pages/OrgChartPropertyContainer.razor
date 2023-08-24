@@ -1,0 +1,3102 @@
+﻿@using Syncfusion.Blazor.Buttons
+@using Syncfusion.Blazor.DropDowns
+@using Syncfusion.Blazor.Inputs
+@using Syncfusion.Blazor.Popups;
+@using Syncfusion.Blazor.Navigations;
+@using Syncfusion.Blazor.Diagram
+@using System.Text.Json;
+@using System.Collections.ObjectModel
+@using Syncfusion.Blazor.SplitButtons
+@inject SfDialogService DialogService
+@inject IJSRuntime js
+
+@namespace OrganizationalChart
+
+<div id='orgChartContainer' class="db-orgcHart-prop-container" style="display:@OrgChartPropertyVisibility">
+    <div class="row db-prop-header-text" style="font-weight: 600;font-size: 13px;">
+        Import
+    </div>
+    <div class="row db-prop-row">
+        <SfButton CssClass="e-primary" @onclick="@import" style="width:230px">Import Data</SfButton>
+    </div>
+    <div class="db-prop-separator"></div>
+    <div class="row db-prop-header-text" style="font-weight: 600;font-size: 13px;">
+        Organization Settings
+    </div>
+    <div class="row db-prop-row">
+        <div class="col-xs-8 db-col-right db-prop-text-style" style="padding-top: 14px;">
+            <span class="db-prop-text-style">Horizontal Spacing</span>
+        </div>
+        <div class="col-xs-4 db-col-left" style="padding-top: 10px">
+            <SfNumericTextBox TValue="int?" Width="100%" @bind-Value="@horizontalValue" Min="20" Step="2" Format="###.##">
+                <NumericTextBoxEvents TValue="int?" ValueChange="OnHorizontalSpaceChange"></NumericTextBoxEvents>
+            </SfNumericTextBox>
+        </div>
+    </div>
+
+    <div class="row db-prop-row" >
+        <div class="col-xs-8 db-col-right db-prop-text-style" style="padding-top: 14px;">
+            <span class="db-prop-text-style">Vertical Spacing</span>
+        </div>
+        <div class="col-xs-4 db-col-left" style="padding-top: 10px;">
+            <SfNumericTextBox TValue="int?" Width="100%" @bind-Value="@verticalValue" Min="20" Step="2" Format="###.##">
+                <NumericTextBoxEvents TValue="int?" ValueChange="OnVerticalSpaceChange"></NumericTextBoxEvents>
+            </SfNumericTextBox>
+        </div>
+    </div>
+    <div class="row db-prop-row" id='toolbarTextAlignmentDiv' style="display:block;">
+        <SfToolbar ID="toolbarTextAlignment" OverflowMode="@Syncfusion.Blazor.Navigations.OverflowMode.Scrollable">
+            <ToolbarEvents Clicked="@OnAlignmentClick"></ToolbarEvents>
+            <ToolbarItems>
+                <ToolbarItem PrefixIcon="e-icons sf-icon-TextRight tb-icons" TooltipText="Align Right" CssClass="@HorAlignRightCss"></ToolbarItem>
+                <ToolbarItem PrefixIcon="e-icons sf-icon-TextVerticalCenter tb-icons" TooltipText="Align Center" CssClass="@HorAlignCenterCss"></ToolbarItem>
+                <ToolbarItem PrefixIcon="e-icons sf-icon-TextLeft tb-icons" TooltipText="Align Left" CssClass="@HorAlignLeftCss"></ToolbarItem>
+                <ToolbarItem PrefixIcon="e-icons sf-icon-TextBottom tb-icons" TooltipText="Align Bottom" CssClass="@VerAlignBottomCss"></ToolbarItem>
+                <ToolbarItem PrefixIcon="e-icons sf-icon-TextHorizontalCenter tb-icons" TooltipText="Align Middle" CssClass="@VerAlignMiddleCss"></ToolbarItem>
+                <ToolbarItem PrefixIcon="e-icons sf-icon-TextTop tb-icons" TooltipText="Align Top" CssClass="@VerAlignTopCss"></ToolbarItem>
+            </ToolbarItems>
+        </SfToolbar>
+    </div>
+    <div class="db-prop-separator"></div>
+    <div class="row db-prop-header-text">
+        Orientation Styles
+    </div>
+    <div class="row db-prop-row">
+        <div class="col-xs-6 org-pattern-parent">
+            <div class="mindmap-pattern-style orgchart-pattern1" title="Vertical Alternate" @onclick="@OrgChartPattern1Change" value=@patternValue></div>
+        </div>
+        <div class="col-xs-6 org-pattern-parent">
+            <div class="mindmap-pattern-style orgchart-pattern2" title="Vertical Left" @onclick="@OrgChartPattern2Change" value=@patternValue></div>
+        </div>
+    </div>
+    <div class="row db-prop-row" style="margin-top:5px">
+        <div class="col-xs-6 org-pattern-parent">
+            <div class="mindmap-pattern-style orgchart-pattern3" title="Vertical Right" @onclick="@OrgChartPattern3Change" value=@patternValue></div>
+        </div>
+        <div class="col-xs-6 org-pattern-parent">
+            <div class="mindmap-pattern-style orgchart-pattern4" title="Horizontal Center" @onclick="@OrgChartPattern4Change" value=@patternValue></div>
+        </div>
+    </div>
+    <div class="row db-prop-row" style="margin-top:5px">
+        <div class="col-xs-6 org-pattern-parent">
+            <div class="mindmap-pattern-style orgchart-pattern5" title="Horizontal Right" @onclick="@OrgChartPattern5Change" value=@patternValue></div>
+        </div>
+        <div class="col-xs-6 org-pattern-parent">
+            <div class="mindmap-pattern-style orgchart-pattern6" title="Horizontal Left" @onclick="@OrgChartPattern6Change" value=@patternValue></div>
+        </div>
+    </div>
+    <div class="db-prop-separator"></div>
+    <div class="row db-prop-header-text" style="font-weight: 600;font-size: 13px;">
+        OrgChart Templates
+    </div>
+    <div class="row db-prop-row">
+        <div class="col-xs-6 org-pattern-parent">
+            <div class="mindmap-pattern-style orgchart-template1" @onclick="@OrgChartTemplate1" value=@patternValue></div>
+        </div>
+        <div class="col-xs-6 org-pattern-parent">
+            <div class="mindmap-pattern-style orgchart-template2" @onclick="@OrgChartTemplate2" value=@patternValue></div>
+        </div>
+    </div>
+    <div class="row db-prop-row" style="margin-top:5px;">
+        <div class="col-xs-6 org-pattern-parent">
+            <div class="mindmap-pattern-style orgchart-template3" @onclick="@OrgChartTemplate3" value=@patternValue></div>
+        </div>
+        <div class="col-xs-6 org-pattern-parent">
+            <div class="mindmap-pattern-style orgchart-template4" @onclick="@OrgChartTemplate4" value=@patternValue></div>
+        </div>
+    </div>
+
+    <SfDialog ID="import_Dialog" @ref="@importDialog" Height="480px" @bind-Visible="@importDialogBoxVisible" Width="440px" ShowCloseIcon="true" IsModal="true" AllowPrerender="true">
+        <DialogTemplates>
+            <Content>
+                <div class="row db-prop-row first page" style="display:@dialogboxVisible">
+                    <div class="row db-prop-row">
+                        <div style="height:18px;float:left;margin-top: 2px;font-weight:500;font-size:12px">
+                            Choose Format
+                        </div>
+                    </div>
+                    <div class="row db-prop-row">
+                        <div class="col-xs-3 db-prop-col-style" style="margin-right: 8px;width: 20%;">
+                            <SfRadioButton Label="CSV" Name="FileFormat" Value="CSV" TChecked="string" @onchange="onChange" @onclick="CSVFormat" @bind-Checked="checkFormat"></SfRadioButton>
+                        </div>
+                        <div class="col-xs-3 db-prop-col-style" style="margin-right: 8px;width: 20%;">
+                            <SfRadioButton Label="XML" Name="FileFormat" Value="XML" TChecked="string" @onchange="onChange" @onclick="XMLFormat" @bind-Checked="checkFormat"></SfRadioButton>
+                        </div>
+                        <div class="col-xs-3 db-prop-col-style" style="margin-right: 8px;width: 20%;">
+                            <SfRadioButton Label="JSON" Name="FileFormat" Value="JSON" TChecked="string" @onclick="JSONFormat" @onchange="onChange" @bind-Checked="checkFormat"></SfRadioButton>
+                        </div>
+
+
+                    </div>
+                    <div class="row db-prop-row" style="padding: 10px; background-color: #FFF7B5; border: 1px solid #FFF7B5">
+                        <div class="db-prop-import" style="width: 10%; background-color:transparent; height: 60px;"> </div>
+                        <div style="float:left; width: calc(90% - 5px)">
+                            <ul style="padding-left: 25px; margin-bottom: 0px">
+                                <li style="margin-bottom: 5px">
+                                    <span id="descriptionText1" style="color: #515151;font-size: 11px;line-height: 15px;">Make sure that the every column of your table has a header</span>
+                                </li>
+                                <li>
+                                    <span id="descriptionText2" style="color: #515151;font-size: 11px;line-height: 15px;">Each employee should have a reporting person (except for top most employee of the organization) and it should be indicated by any field from your data source.</span>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="row db-prop-row">
+                        <SfButton CssClass="db-btn-import" content="@content" @onclick="@Download"></SfButton>
+                    </div>
+
+
+                    <div class="row" style="margin-top:20px">
+
+                        <div class="db-prop-drop-import-file">
+
+
+                            <SfUploader @ref="uploadObj" ID="uploadFile" AllowMultiple=false AutoUpload="true" DropArea=".db-prop-drop-import-file" AllowedExtensions="@extension">
+                                <UploaderEvents OnRemove="@OnRemoveHandler" BeforeRemove="@BeforeRemovehandler" Success="@OnUploadSuccess" OnUploadStart="@OnUploadFileSelected"></UploaderEvents>
+                                <UploaderAsyncSettings SaveUrl="https://aspnetmvc.syncfusion.com/services/api/uploadbox/Save" RemoveUrl="https://aspnetmvc.syncfusion.com/services/api/uploadbox/Remove"></UploaderAsyncSettings>
+                            </SfUploader>
+                        </div>
+                    </div>
+
+
+                </div>
+                <div id="parentChildRelationDiv" class="row db-prop-row" style="display:@dialogboxSecondPade">
+                    <div class="row db-dialog-child-prop-row" style="margin-top:20px">
+
+                        <div class="row">
+                            <div class="text">Employee ID</div>
+                            <div class="id"></div>
+                        </div>
+                        <div class="row db-dialog-child-prop-row">
+                            <SfDropDownList @ref="employeeDropdownList" TValue="string" Placeholder="Employee ID" TItem="string" @bind-Value="@employeID" DataSource="@dropdownDataSource" Width="350px">
+                            </SfDropDownList>
+                        </div>
+                    </div>
+                    <div class="row db-dialog-prop-row">
+                        <div class="row">
+                            <div class="text1"> Supervisor ID</div>
+                            <div class="supervisor-id"> </div>
+                        </div>
+                        <div class="row db-dialog-child-prop-row"></div>
+                        <div>
+                            <SfDropDownList @ref="supervisorDropdownList" TValue="string" Placeholder="Supervisor ID" TItem="string" @bind-Value="@supervisorID" DataSource="@dropdownDataSource" Width="350px">
+                            </SfDropDownList>
+                        </div>
+                    </div>
+                </div>
+                <div id="parentChildRelationDiv" class="row db-prop-row" style="display:@dialogboxThirdPade">
+                    <div class="row db-dialog-child-prop-row" style="margin-top:20px">
+
+                        @foreach (KeyValuePair<string, bool> valuePair in DataSourceDictionary)
+                        {
+                            string field = valuePair.Key;
+                            bool checkbox = valuePair.Value;
+                            if (field != "ImageURL")
+                            {
+                                <div class="row">
+                                    <div style="margin-top:20px" class="db-info-text">@field</div>
+                                    <div style="float:right;margin-right:220px;margin-top:20px">
+                                        <SfCheckBox @ref="checkboxComponent" ID="@field" @bind-Checked="@checkbox" ValueChange="(args)=>DataSourceCheckBoxValueChangeHandler(args,field)" TChecked="bool"></SfCheckBox>
+                                    </div>
+                                </div>
+                            }
+
+                        }
+
+                    </div>
+
+                </div>
+            </Content>
+
+        </DialogTemplates>
+
+        <DialogButtons>
+            <DialogButton Content="Cancel" @onclick="@CancelImport" CssClass="e-flat">
+            </DialogButton>
+            <DialogButton Content="Next" @onclick="@Next" IsPrimary="true" CssClass="e-flat e-db-primary">
+            </DialogButton>
+        </DialogButtons>
+
+    </SfDialog>
+    <div id="target" style="max-height:363px">
+        <SfDialog @ref="dialog" Target="#target" Width="500px" ShowCloseIcon="true" @bind-Visible="dialogVisibility" IsModal="true">
+            <DialogEvents Closed="@ClosedHandler"></DialogEvents>
+            <DialogTemplates>
+                <Header>
+                    <div class="e-dlg-header" id="customPropertyDialog_title">Property Details</div>
+                </Header>
+                <Content>
+                    @if (this.Parent.DiagramContent.Diagram.SelectionSettings.Nodes.Count > 0)
+                    {
+                        DiagramSelectionSettings selectionSettings = this.Parent.DiagramContent.Diagram.SelectionSettings;
+                        {
+                            Node node = selectionSettings.Nodes[0];
+                            string nodeID = selectionSettings.Nodes[0].ID;
+                            {
+                                if ((isCancelClick && isDeleteClick) || (isCancelClick && !isDeleteClick))
+                                {
+                                    var textDictionary = new Dictionary<string, string>();
+                                    var textboxdictionary = new Dictionary<string, string>();
+                                    var checkBoxDictionary = new Dictionary<string, bool>();
+                                    var checkboxValues = new Dictionary<string, bool>();
+                                    foreach (KeyValuePair<string, Dictionary<string, string>> textbox in OriginalTextBoxValuesDictionary)
+                                    {
+                                        if (textbox.Key == nodeID)
+                                        {
+                                            textboxdictionary = textbox.Value;
+                                            foreach (KeyValuePair<string, string> valuePair1 in textboxdictionary)
+                                            {
+                                                foreach (KeyValuePair<string, Dictionary<string, string>> textboxvalue in TextBoxDictionary)
+                                                {
+                                                    textDictionary = textbox.Value;
+                                                }
+                                                IEnumerable<string> commonKeys = textboxdictionary.Keys.Intersect(textDictionary.Keys);
+                                                TextBoxDictionary.Remove(nodeID);
+                                                var tempTextBoxValues = new Dictionary<string, string>();
+                                                foreach (string keys in commonKeys)
+                                                {
+                                                    string val = OriginalTextBoxValuesDictionary[nodeID][keys];
+
+                                                    tempTextBoxValues.Add(keys, val);
+                                                }
+                                                TextBoxDictionary.Add(nodeID, tempTextBoxValues);
+                                            }
+                                        }
+                                    }
+                                    foreach (KeyValuePair<string, Dictionary<string, bool>> checkbox in OriginalCheckBoxValuesDictionary)
+                                    {
+                                        if (checkbox.Key == nodeID)
+                                        {
+                                            checkBoxDictionary = checkbox.Value;
+                                            foreach (KeyValuePair<string, bool> valuePair1 in checkBoxDictionary)
+                                            {
+                                                foreach (KeyValuePair<string, Dictionary<string, bool>> checkboxvalue in CheckBoxDictionary)
+                                                {
+                                                    checkboxValues = checkbox.Value;
+
+                                                }
+                                                IEnumerable<string> commonKeys = checkBoxDictionary.Keys.Intersect(checkboxValues.Keys);
+                                                CheckBoxDictionary.Remove(nodeID);
+                                                var tempCheckBoxValues = new Dictionary<string, bool>();
+                                                foreach (string keys in commonKeys)
+                                                {
+                                                    bool value = OriginalCheckBoxValuesDictionary[nodeID][keys];
+
+                                                    tempCheckBoxValues.Add(keys, value);
+
+                                                }
+                                                CheckBoxDictionary.Add(nodeID, tempCheckBoxValues);
+                                            }
+                                        }
+                                    }
+                                    isCancelClick = false;
+                                    isDeleteClick = false;
+                                }
+
+                            }
+
+                            foreach (KeyValuePair<string, Dictionary<string, string>> valuePairs in TextBoxDictionary)
+                            {
+                                if (valuePairs.Key == nodeID)
+                                {
+                                    Dictionary<string, string> listitems = valuePairs.Value;
+
+
+                                    foreach (KeyValuePair<string, string> keyValue in listitems)
+                                    {
+                                        string textBox = keyValue.Key.ToString();
+                                        string textBoxValue = keyValue.Value.ToString();
+                                        foreach (KeyValuePair<string, Dictionary<string, bool>> keyValuePair in CheckBoxDictionary)
+                                        {
+                                            if (keyValuePair.Key == nodeID)
+                                            {
+                                                Dictionary<string, bool> listitems1 = keyValuePair.Value;
+                                                foreach (KeyValuePair<string, bool> keyValues in listitems1)
+                                                {
+                                                    string Checkbox = keyValues.Key.ToString();
+                                                    bool CheckboxValue = (bool)(keyValues.Value);
+                                                    if (Checkbox == textBox && keyValuePair.Key == nodeID)
+                                                    {
+                                                        string textId = "Text" + textBox;
+                                                        string checkboxId = "Checkbox" + Checkbox;
+                                                        <div class="db-custom-prop-info-template" id="customPropertyDialog" style="">
+                                                            <div class="row">
+                                                                <div class="col-xs-6 db-col-left propertyNameDiv" style="margin-bottom:10px;display:@textboxDisplayProperty">@textBox</div>
+                                                                <div class="col-xs-6 db-col-right propertyValueDiv">
+                                                                    <SfTextBox CssClass="e-outline" Value="@textBoxValue" ID="@textId" ValueChange="(args)=>TextBoxValueChangeHandler(args,textId)"></SfTextBox>
+                                                                </div>
+                                                                @if (Checkbox != "ImageURL" && textBox != "ImageURL")
+                                                                {
+                                                                    <div class="propertyTooltipDiv" style="display:@checkboxDisplayProperty">
+                                                                        <SfCheckBox ID="@checkboxId" @bind-Checked="@CheckboxValue" ValueChange="(args)=>CheckBoxValueChangeHandler(args,checkboxId)" TChecked="bool"></SfCheckBox>
+
+                                                                    </div>
+                                                                }
+
+
+                                                                @if (!IsUploader && node.Data == null && Checkbox != "ImageURL" && textBox != "ImageURL"&&textBox!="Name")
+                                                                {
+
+                                                                    <div class="propertyLabelDiv">
+                                                                        <SfButton ID="@textBox" CssClass="e-outline" @onclick="(args)=>DeleteClick(args,textBox)"> <span class="e-icons e-trash"></span></SfButton>
+
+                                                                    </div>
+                                                                }
+
+
+                                                            </div>
+                                                        </div>
+                                                    }
+                                                }
+
+                                            }
+                                        }
+
+                                    }
+
+                                }
+                            }
+                        }
+                    }
+                    @if (this.Parent.DiagramContent.Diagram.SelectionSettings.Nodes.Count == 1 && this.Parent.DiagramContent.Diagram.SelectionSettings.Nodes[0].Data == null && !IsUploader)
+                    {
+                        <div class="db-custom-prop-template" style="">
+                            <div class="row">
+                                <div class="col-xs-6 db-col-left" style="width:70%">
+                                    <SfTextBox @ref="addPropertyTextBox" CssClass="e-outline" Placeholder="Enter Property Name" ValueChanged="@AddproertyValueChangeHandler"></SfTextBox>
+                                </div>
+
+
+                                <div class="col-xs-6 db-col-right" style="width:30%;padding-left: 10px;padding-top: 8px;">
+                                    <SfButton class="db-custom-prop-button e-control e-btn e-lib" @bind-Disabled="@addPropertyButton" id="property" @onclick="AddProperty" style="width:100%; text-transform: none;box-shadow: 0 0 0 0">Add Property</SfButton>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </Content>
+                <FooterTemplate>
+
+                    <SfButton id="sendButton" @onclick="@Apply" class="e-control e-btn e-primary" data-ripple="true">Apply</SfButton>
+                    <SfButton id="sendButton1" @onclick="@Cancel" class="e-control e-btn e-primary" data-ripple="true">Cancel</SfButton>
+                </FooterTemplate>
+            </DialogTemplates>
+        </SfDialog>
+    </div>
+
+
+
+</div>
+
+@code
+{
+    /// <summary>
+    /// Reference to the SfUploader component.
+    /// </summary>
+    private SfUploader uploadObj;
+
+    /// <summary>
+    /// Reference to the SfTextBox component used to add property.
+    /// </summary>
+    private SfTextBox  addPropertyTextBox;
+
+    /// <summary>
+    /// Boolean flag to determine whether the add property button is visible.
+    /// </summary>
+    private bool addPropertyButton = true;
+
+    /// <summary>
+    /// Reference to the SfDropDownList used for employee selection.
+    /// </summary>
+    private SfDropDownList<string, string> employeeDropdownList = new SfDropDownList<string, string>();
+
+    /// <summary>
+    /// Reference to the SfDropDownList used for supervisor selection.
+    /// </summary>
+    private SfDropDownList<string, string> supervisorDropdownList = new SfDropDownList<string, string>();
+
+    /// <summary>
+    /// Reference to the SfDialog component.
+    /// </summary>
+    private SfDialog? dialog;
+
+    /// <summary>
+    /// Reference to the SfCheckBox component.
+    /// </summary>
+    private SfCheckBox<bool> checkboxComponent;
+
+    /// <summary>
+    /// CSS property to control the display of the checkbox component.
+    /// </summary>
+    private string checkboxDisplayProperty = "block";
+
+    /// <summary>
+    /// CSS property to control the display of the textbox component.
+    /// </summary>
+    private string textboxDisplayProperty = "block";
+
+    /// <summary>
+    /// Temporary list to store the dropdown data source.
+    /// </summary>
+    private List<string> tempDropdownDataSource = new List<string>();
+
+    /// <summary>
+    /// List to store the final dropdown data source.
+    /// </summary>
+    private List<string> dropdownDataSource = new List<string>();
+
+    /// <summary>
+    /// Boolean flag to determine the visibility of the dialog.
+    /// </summary>
+    private bool dialogVisibility { get; set; } = false;
+
+    /// <summary>
+    /// The value of the textbox used for data input.
+    /// </summary>
+    private string textboxValue = "";
+
+    /// <summary>
+    /// Employee ID property.
+    /// </summary>
+    private string? employeID { get; set; }
+
+    /// <summary>
+    /// Supervisor ID property.
+    /// </summary>
+    private string? supervisorID { get; set; }
+
+    /// <summary>
+    /// Specifies the format of data (CSV, XML, etc.).
+    /// </summary>
+    private string checkFormat { get; set; } = "CSV";
+
+    /// <summary>
+    /// File extension for data files.
+    /// </summary>
+    private string extension = ".csv";
+
+    /// <summary>
+    /// JSON data containing employee details.
+    /// </summary>
+    string data = "[{\"Name\":\"Maria Anders\",\"EmployeeID\":\"1\",\"Role\":\"Managing Director\",\"Department\":\"\",\"Location\":\"US\",\"Phone\":\"(555) 111-1111\",\"Email\":\"mariaanders @fakecompany.co\",\"SupervisorName\":\"\",\"SupervisorID\":\"\",\"ImageURL\":\"/assets/dbstyle/orgchart_images/blank-male.jpg\"},{\"Name\": \"Carine Schmitt\", \"EmployeeID\": \"2\", \"Role\": \"Project Manager\", \"Department\": \"Development\",\"Location\": \"US\", \"Phone\": \"(555) 222-2222\", \"Email\": \"carineschmitt@fakecompany.com\", \"SupervisorName\": \"Maria Anders\",\"SupervisorID\": \"1\", \"ImageURL\": \"/assets/dbstyle/orgchart_images/blank-male.jpg\"},{\"Name\": \"Daniel Tonini\", \"EmployeeID\": \"3\", \"Role\": \"Project Manager\", \"Department\": \"Development\",\"Location\": \"US\", \"Phone\": \"(555) 333-3333\", \"Email\": \"danieltonini@fakecompany.com\", \"SupervisorName\": \"Maria Anders\",\"SupervisorID\": \"1\", \"ImageURL\": \"/assets/dbstyle/orgchart_images/blank-male.jpg\"},{\"Name\": \"Alex Camino\", \"EmployeeID\": \"4\", \"Role\": \"Project Lead\", \"Department\": \"Development\",\"Location\": \"US\", \"Phone\": \"(555) 444-4444\", \"Email\": \"alexcamino@fakecompany.com\", \"SupervisorName\": \"Daniel Tonini\",\"SupervisorID\": \"3\", \"ImageURL\": \"/assets/dbstyle/orgchart_images/blank-male.jpg\"},{\"Name\": \"Jones Bergson\", \"EmployeeID\": \"5\", \"Role\": \"Project Lead\", \"Department\": \"Development\",\"Location\": \"US\", \"Phone\": \"(555) 555-5555\", \"Email\": \"jonesbergson@fakecompany.com\", \"SupervisorName\": \"Daniel Tonini\",\"SupervisorID\": \"3\", \"ImageURL\": \"/assets/dbstyle/orgchart_images/blank-male.jpg\"},{\"Name\": \"Rene Phillips\", \"EmployeeID\": \"6\", \"Role\": \"Project Lead\", \"Department\": \"Development\",\"Location\": \"US\", \"Phone\": \"(555) 666-6666\", \"Email\": \"renephillips@fakecompany.com\", \"SupervisorName\": \"Daniel Tonini\",\"SupervisorID\": \"3\", \"ImageURL\": \"/assets/dbstyle/orgchart_images/blank-male.jpg\"}]";
+    /// <summary>
+    /// List to store the employee details in the form of dictionaries.
+    /// </summary>
+    private List<Dictionary<string, string>> employeDetails = new List<Dictionary<string, string>>();
+
+    /// <summary>
+    /// List to store org chart details.
+    /// </summary>
+    private List<OrgChartDetails> orgChartDetails = new List<OrgChartDetails>();
+
+    /// <summary>
+    /// List to store data source details.
+    /// </summary>
+    private List<OrgChartDetails> dataSourceDetails=new List<OrgChartDetails>();
+
+    /// <summary>
+    /// JSON data in string format.
+    /// </summary>
+    private string json = "";
+
+    /// <summary>
+    /// Flag to determine if the data format is XML.
+    /// </summary>
+    private bool isXML;
+
+    /// <summary>
+    /// CSS property to control the visibility of the dialog box.
+    /// </summary>
+    private string dialogboxVisible { get; set; } = "block";
+
+    /// <summary>
+    /// CSS property to control the visibility of the dialog box for the second page.
+    /// </summary>
+    private string dialogboxSecondPade { get; set; } = "none";
+
+    /// <summary>
+    /// CSS property to control the visibility of the dialog box for the third page.
+    /// </summary>
+    private string dialogboxThirdPade { get; set; } = "none";
+
+    /// <summary>
+    /// Flag to determine if the org chart property panel is visible.
+    /// </summary>
+    public bool OrgChartProperty = false;
+
+    /// <summary>
+    /// Reference to the SfDialog component used for importing.
+    /// </summary>
+    private SfDialog importDialog;
+
+    /// <summary>
+    /// Content of the import dialog.
+    /// </summary>
+    private string content = "Download Example Csv";
+
+    /// <summary>
+    /// Flag to determine the visibility of the import dialog box.
+    /// </summary>
+    private bool importDialogBoxVisible { get; set; } = false;
+
+    /// <summary>
+    /// Horizontal value for alignment.
+    /// </summary>
+    int? horizontalValue = 50;
+
+    /// <summary>
+    /// Vertical value for alignment.
+    /// </summary>
+    int? verticalValue = 50;
+
+    /// <summary>
+    /// Count of files uploaded.
+    /// </summary>
+    private int fileCount = 0;
+
+    /// <summary>
+    /// List of uploaded files.
+    /// </summary>
+    private List<FileInfo> files = new List<FileInfo>() { };
+
+    /// <summary>
+    /// Pattern value for alignment.
+    /// </summary>
+    private string patternValue = "None";
+
+    /// <summary>
+    /// CSS class for horizontal right alignment.
+    /// </summary>
+    private string HorAlignRightCss = "tb-item-start";
+
+    /// <summary>
+    /// CSS class for horizontal center alignment.
+    /// </summary>
+    private string HorAlignCenterCss = "tb-item-middle";
+
+    /// <summary>
+    /// CSS class for horizontal left alignment.
+    /// </summary>
+    private string HorAlignLeftCss = "tb-item-middle";
+
+    /// <summary>
+    /// CSS class for vertical bottom alignment.
+    /// </summary>
+    private string VerAlignBottomCss = "tb-item-middle";
+
+    /// <summary>
+    /// CSS class for vertical middle alignment.
+    /// </summary>
+    private string VerAlignMiddleCss = "tb-item-middle";
+
+    /// <summary>
+    /// CSS class for vertical top alignment.
+    /// </summary>
+    private string VerAlignTopCss = "tb-item-end";
+
+    /// <summary>
+    /// Boolean flag for cancel click event.
+    /// </summary>
+    private bool isCancelClick;
+
+    /// <summary>
+    /// Boolean flag for delete click event.
+    /// </summary>
+    private bool isDeleteClick;
+
+    /// <summary>
+    /// Boolean flag for add property click event.
+    /// </summary>
+    private bool isAddPropertyClick;
+
+    /// <summary>
+    /// Collection of diagram node bases.
+    /// </summary>
+    private DiagramObjectCollection<NodeBase> nodeBases = new DiagramObjectCollection<NodeBase>();
+
+    /// <summary>
+    /// Collection of diagram nodes.
+    /// </summary>
+    private DiagramObjectCollection<NodeBase> NodeCollection = new DiagramObjectCollection<NodeBase>();
+
+    /// <summary>
+    /// Reference to the parent DiagramMain component.
+    /// </summary>
+    internal DiagramMain Parent;
+
+    /// <summary>
+    /// Flag to determine if the layout is active.
+    /// </summary>
+    public bool IsLayout;
+
+    /// <summary>
+    /// SubTreeOrientation for the org chart.
+    /// </summary>
+    public Syncfusion.Blazor.Diagram.Orientation SubTreeOrientation = Syncfusion.Blazor.Diagram.Orientation.Horizontal;
+
+    /// <summary>
+    /// SubTreeAlignmentType for the org chart.
+    /// </summary>
+    public SubTreeAlignmentType SubTreeAlignment = SubTreeAlignmentType.Center;
+
+    /// <summary>
+    /// Flag to determine if the diagram is an org chart.
+    /// </summary>
+    public bool IsOrgChart = false;
+
+    /// <summary>
+    /// Flag to determine if it is the first time for the uploader.
+    /// </summary>
+    public bool IsUploderFirstTime;
+
+    /// <summary>
+    /// Flag to determine if the uploader is active.
+    /// </summary>
+    public bool IsUploader;
+
+    /// <summary>
+    /// Flag to determine if the add node operation is active.
+    /// </summary>
+    public bool IsAddNode;
+
+    /// <summary>
+    /// CSS property to control the visibility of the org chart property panel.
+    /// </summary>
+    public string OrgChartPropertyVisibility { get; set; } = "block";
+
+    /// <summary>
+    /// Value of the template for org chart.
+    /// </summary>
+    public string Templatevalue = "None";
+
+    /// <summary>
+    /// Flag to determine if copy operation is active.
+    /// </summary>
+    public bool IsCopy;
+
+    /// <summary>
+    /// Dictionary to store the data source of the diagram.
+    /// </summary>
+    public Dictionary<string, bool> DataSourceDictionary = new Dictionary<string, bool>();
+
+    /// <summary>
+    /// Dictionary to store the text box values of the diagram.
+    /// </summary>
+    public Dictionary<string, Dictionary<string, string>> TextBoxDictionary = new Dictionary<string, Dictionary<string, string>>();
+
+    /// <summary>
+    /// Dictionary to store the deleted items of the diagram.
+    /// </summary>
+    public Dictionary<string, List<string>> DeleteDictionary = new Dictionary<string, List<string>>();
+
+    /// <summary>
+    /// Dictionary to store the original text box values of the diagram.
+    /// </summary>
+    public Dictionary<string, Dictionary<string, string>> OriginalTextBoxValuesDictionary = new Dictionary<string, Dictionary<string, string>>();
+
+    /// <summary>
+    /// Dictionary to store the original checkbox values of the diagram.
+    /// </summary>
+    public Dictionary<string, Dictionary<string, bool>> OriginalCheckBoxValuesDictionary = new Dictionary<string, Dictionary<string, bool>>();
+
+    /// <summary>
+    /// Dictionary to store the checkbox values of the diagram.
+    /// </summary>
+    public Dictionary<string, Dictionary<string, bool>> CheckBoxDictionary = new Dictionary<string, Dictionary<string, bool>>();
+
+    /// <summary>
+    /// Flag to determine if additional information is active.
+    /// </summary>
+    public bool IsAdditionalInfo = false;
+
+    /// <summary>
+    /// Dictionary to store the application of properties.
+    /// </summary>
+    public Dictionary<string, bool> ApplyDictionary = new Dictionary<string, bool>();
+
+    /// <summary>
+    /// Reference to the DiagramMainContent component.
+    /// </summary>
+    public DiagramMainContent? DiagramContent;
+
+    /// <summary>
+    /// Org chart style.
+    /// </summary>
+    public string? OrgChartStyle;
+    /// <summary>
+    /// Event handler for the change event of an input element.
+    /// Updates the 'checkFormat' property based on the user input.
+    /// </summary>
+    /// <param name="args">The event arguments containing the new value.</param>
+    private void onChange(Microsoft.AspNetCore.Components.ChangeEventArgs args)
+    {
+        checkFormat = args.Value.ToString();
+    }
+    /// <summary>
+    /// Event handler called before removing an item.
+    /// Refreshes the data in supervisorDropdownList and employeeDropdownList asynchronously.
+    /// </summary>
+    /// <param name="args">The event arguments containing information about the removal.</param>
+    private async Task BeforeRemovehandler(BeforeRemoveEventArgs args)
+    {
+        await supervisorDropdownList.RefreshDataAsync();
+        await employeeDropdownList.RefreshDataAsync();
+    }
+    /// <summary>
+    /// Event handler called when removing an item.
+    /// Retrieves the files data from uploadObj and updates fileCount based on the number of files.
+    /// </summary>
+    /// <param name="args">The event arguments containing information about the removal.</param>
+    private async Task OnRemoveHandler(RemovingEventArgs args)
+    {
+        files =await uploadObj.GetFilesDataAsync();
+
+        fileCount = files.Count;
+    }
+    /// <summary>
+    /// Event handler for the click event on the delete button.
+    /// Sets the 'isDeleteClick' flag to true and performs some data manipulation based on 'id'.
+    /// </summary>
+    /// <param name="args">The event arguments containing information about the click event.</param>
+    /// <param name="id">The identifier of the item to be deleted.</param>
+    private void DeleteClick(Microsoft.AspNetCore.Components.Web.MouseEventArgs args, string id)
+    {
+        isDeleteClick = true;
+        var nodeID = this.Parent.DiagramContent?.Diagram.SelectionSettings.Nodes[0].ID;
+        Dictionary<string, string> dictTextValues = new Dictionary<string, string>();
+        Dictionary<string, bool> dictTextValues1 = new Dictionary<string, bool>();
+        foreach (KeyValuePair<string, List<string>> key in DeleteDictionary)
+        {
+            foreach (string value in key.Value)
+            {
+
+                if (key.Key == nodeID)
+                {
+                    if (id == value)
+                    {
+                        foreach (KeyValuePair<string, Dictionary<string, string>> previoustext in TextBoxDictionary)
+                        {
+                            if (nodeID == previoustext.Key)
+                            {
+                                foreach (KeyValuePair<string, string> previousText in previoustext.Value)
+                                {
+
+                                    if (id == previousText.Key)
+                                    {
+                                        dictTextValues.Add(previousText.Key, previousText.Value);
+                                        TextBoxDictionary[key.Key].Remove(value);
+                                    }
+
+                                }
+
+                            }
+
+
+                        }
+                        foreach (KeyValuePair<string, Dictionary<string, bool>> previouscheckbox in CheckBoxDictionary)
+                        {
+                            if (nodeID == previouscheckbox.Key)
+                            {
+                                foreach (KeyValuePair<string, bool> previousCheckbox in previouscheckbox.Value)
+                                {
+
+                                    if (id == previousCheckbox.Key)
+                                    {
+                                        dictTextValues1.Add(previousCheckbox.Key, previousCheckbox.Value);
+                                        CheckBoxDictionary[key.Key].Remove(value);
+                                    }
+
+                                }
+
+                            }
+                        }
+
+
+                    }
+                }
+            }
+        }
+
+
+    }
+    /// <summary>
+    /// Event handler for the cancel button click event.
+    /// Sets the 'isCancelClick' flag to true, hides the dialog, and clears the textboxValue.
+    /// </summary>
+    private void Cancel()
+    {
+        isCancelClick = true;
+        dialogVisibility = false;
+        textboxValue = "";
+    }
+    /// <summary>
+    /// Apply changes to the selected nodes in the diagram based on the data from TextBoxDictionary and CheckBoxDictionary.
+    /// This method updates the node annotations, tooltip, and other properties based on the data.
+    /// </summary>
+    private async Task Apply()
+    {
+
+        if (this.Parent.DiagramContent.Diagram.SelectionSettings.Nodes.Count > 0)
+        {
+            for (int i = 0; i < this.Parent.DiagramContent.Diagram.SelectionSettings.Nodes.Count; i++)
+            {
+
+                Node node = this.Parent.DiagramContent.Diagram.SelectionSettings.Nodes[i];
+                SfDiagramComponent diagram = node.GetParent() as SfDiagramComponent;
+                if (diagram != null)
+                {
+                    diagram.Constraints = DiagramConstraints.Default & ~DiagramConstraints.UndoRedo;
+                }
+                {
+                    List<string> annotationlist = new List<string>();
+                    string tooltipContent = "";
+                    bool isCheck = false;
+                    System.Text.StringBuilder tooltipFinalContent = new System.Text.StringBuilder();
+                    List<string> tooltipCount = new List<string>();
+                    ShapeAnnotation annotation = new ShapeAnnotation();
+                    TextStyle textStyle = new TextStyle();
+                    if (node.Annotations.Count > 0)
+                    {
+                        textStyle = node.Annotations[0].Style;
+                    }
+                    else
+                    {
+
+                        textStyle = new TextStyle() { FontSize = 10 };
+                    }
+                    node.Annotations = new DiagramObjectCollection<ShapeAnnotation>();
+                    if (TextBoxDictionary.Count > 0 && CheckBoxDictionary.Count > 0)
+                    {
+                        foreach (KeyValuePair<string, Dictionary<string, bool>> checkboxKey in CheckBoxDictionary)
+                        {
+                            Dictionary<string, bool> innerDictionaryValues = checkboxKey.Value;
+                            if (node.ID == checkboxKey.Key)
+                            {
+                                foreach (KeyValuePair<string, bool> valueKey in innerDictionaryValues)
+                                {
+                                    string checkboxName = valueKey.Key;
+                                    isCheck = valueKey.Value;
+
+                                    if (isCheck || checkboxName == "ImageURL")
+                                    {
+                                        foreach (KeyValuePair<string, Dictionary<string, string>> key in TextBoxDictionary)
+                                        {
+                                            if (node.ID == key.Key)
+                                            {
+                                                Dictionary<string, string> innerDictionary = key.Value;
+                                                foreach (KeyValuePair<string, string> keyValue in innerDictionary)
+                                                {
+                                                    string innerKey = keyValue.Key;
+                                                    string innerValue = keyValue.Value;
+                                                    if (checkboxName == innerKey)
+                                                    {
+                                                        if (ApplyDictionary.ContainsKey(node.ID))
+                                                        {
+                                                            ApplyDictionary[node.ID] = true;
+                                                        }
+                                                        else
+                                                        {
+                                                            ApplyDictionary.Add(node.ID, true);
+                                                        }
+                                                        if (node.Data != null)
+                                                        {
+                                                            UpdateTooltip(node, innerKey, innerValue);
+                                                        }
+                                                        if (innerKey == "ImageURL" && checkboxName == "ImageURL" && !string.IsNullOrEmpty(innerValue))
+                                                        {
+                                                            node.Shape = new ImageShape { Type = NodeShapes.Image, Source = innerValue, ImageAlign = ImageAlignment.XMinYMin, Scale = DiagramScale.None };
+                                                        }
+                                                        if (innerKey != "ImageURL" && checkboxName != "ImageURL")
+                                                        {
+                                                            if (!string.IsNullOrEmpty(innerValue))
+                                                            {
+                                                                annotationlist.Add(innerValue);
+                                                            }
+
+                                                        }
+                                                        tooltipContent = "<tr><td>" + keyValue.Key + "</td><td>:</td><td>" + keyValue.Value + "</td></tr>";
+                                                        tooltipFinalContent.Append(tooltipContent);
+                                                    }
+
+
+                                                }
+                                            }
+                                        }
+                                    }
+                                    else
+                                    {
+                                        if (IsUploader)
+                                        {
+                                            var key = checkboxName;
+                                            var value = TextBoxDictionary[node.ID][checkboxName];
+                                            tooltipContent = "<tr><td>" + checkboxName + "</td><td>:</td><td>" + value + "</td></tr>";
+                                            tooltipFinalContent.Append(tooltipContent);
+                                        }
+                                    }
+                                }
+
+                            }
+                        }
+
+                    }
+                    foreach (string annotationValue in annotationlist)
+                    {
+                        annotation = new ShapeAnnotation()
+                            {
+                                Content = annotationValue,
+                                Style = textStyle,
+                                Constraints = AnnotationConstraints.ReadOnly,
+
+                            };
+                        int annotationCount = annotation.Content.Length;
+                        if (annotationCount > 20)
+                        {
+                            annotation.Style.TextOverflow = TextOverflow.Ellipsis;
+                            annotation.Style.TextWrapping = TextWrap.NoWrap;
+                        }
+                        await node.Annotations.AddAsync(annotation);
+
+                    }
+                    UpdateAnnotationStyle(node);
+                    string id = "width: 100%;";
+                    UpdateAnnotationPosition(node);
+                    if (node.Data == null && !IsUploader)
+                    {
+                        node.Tooltip = new DiagramTooltip()
+                            {
+                                Template = "<table" + " style=" + id + ">" + tooltipFinalContent + "</table>",
+                            };
+                    }
+                    else
+                    {
+                        if (node.Data != null)
+                        {
+                            OrgChartDetails data = node.Data as OrgChartDetails;
+
+                            node.Tooltip = new DiagramTooltip()
+                                {
+                                    Template = "<table" + " style=" + id + "><tr><td>Name</td><td>:</td><td>" + data.Name + "</td></tr><tr><td>Role</td><td>:</td><td>" + data.Role + "</td></tr><tr><td>Email</td><td>:</td><td>" + data.Email + "</td></tr><tr><td>Department</td><td>:</td><td>" + data.Department + "</td></tr><tr><td>EmployeeID</td><td>:</td><td>" + data.EmployeeID + "</td></tr><tr><td>SupervisorID</td><td>:</td><td>" + data.SupervisorID + "</td></tr><tr><td>SupervisorName</td><td>:</td><td>" + data.SupervisorName + "</td></tr><tr><td>Location</td><td>:</td><td>" + data.Location + "</td></tr><tr><td>Phone</td><td>:</td><td>" + data.Phone + "</td></tr><tr><td>ImageURL</td><td>:</td><td>" + data.ImageURL + "</td></tr></table>",
+
+                                };
+                        }
+                    }
+
+                    if (tooltipFinalContent.ToString() != "")
+                    {
+                        if (IsUploader && node.Data == null)
+                        {
+                            node.Tooltip = new DiagramTooltip()
+                                {
+                                    Template = "<table" + " style=" + id + ">" + tooltipFinalContent + "</table>",
+                                };
+                        }
+                        node.Constraints = NodeConstraints.Default | NodeConstraints.Tooltip;
+                    }
+                    else
+                    {
+                        node.Constraints = NodeConstraints.Default & ~(NodeConstraints.Tooltip);
+                    }
+                    diagram.Constraints = DiagramConstraints.Default | DiagramConstraints.UndoRedo;
+                }
+
+            }
+
+        }
+        string nodeid = this.Parent.DiagramContent.Diagram.SelectionSettings.Nodes[0].ID;
+        OriginalTextBoxValuesDictionary.Remove(nodeid);
+        OriginalCheckBoxValuesDictionary.Remove(nodeid);
+        var checkboxvalues = new Dictionary<string, bool>();
+        var TextValues = new Dictionary<string, string>();
+        foreach (KeyValuePair<string, Dictionary<string, bool>> checkbox in CheckBoxDictionary)
+        {
+            if (nodeid == checkbox.Key)
+            {
+                var valuesCollection = checkbox.Value;
+                foreach (KeyValuePair<string, bool> keyValuePairs in valuesCollection)
+                {
+
+                    checkboxvalues.Add(keyValuePairs.Key, keyValuePairs.Value);
+                }
+            }
+        }
+        foreach (KeyValuePair<string, Dictionary<string, string>> textbox in TextBoxDictionary)
+        {
+            if (nodeid == textbox.Key)
+            {
+                var valuesCollection = textbox.Value;
+                foreach (KeyValuePair<string, string> KeyValuePairs in valuesCollection)
+                {
+
+                    TextValues.Add(KeyValuePairs.Key, KeyValuePairs.Value);
+                }
+            }
+        }
+        OriginalCheckBoxValuesDictionary.Add(nodeid, checkboxvalues);
+        OriginalTextBoxValuesDictionary.Add(nodeid, TextValues);
+        dialogVisibility = false;
+        textboxValue = "";
+        await this.Parent.DiagramContent.Diagram.DoLayout();
+    }
+    /// <summary>
+    /// Update the style of the annotations for a given node.
+    /// The first annotation is set to be bold, and the others are set to regular text.
+    /// </summary>
+    /// <param name="node">The node for which annotations style needs to be updated.</param>
+    public void UpdateAnnotationStyle(Node node)
+    {
+        for (int k = 0; k < node.Annotations.Count; k++)
+        {
+            if (k == 0)
+            {
+                node.Annotations[k].Style = new TextStyle() { Color = "black", FontSize = 10, Bold = true };
+            }
+            else
+            {
+                node.Annotations[k].Style = new TextStyle() { Color = "black", FontSize = 8, Bold = false };
+
+            }
+        }
+    }
+    /// <summary>
+    /// Update the position and size of the annotations for a given node based on the number of annotations.
+    /// </summary>
+    /// <param name="node">The node for which annotations position and size need to be updated.</param>
+    public void UpdateAnnotationPosition(Node node)
+    {
+        int annocount = node.Annotations.Count;
+        if (node.Annotations.Count < 3)
+        {
+            node.Height = 50;
+            node.Width = 150;
+        }
+        else
+        {
+            node.Height = node.Annotations.Count * 20 + 10;
+            node.Width = 170;
+        }
+
+        if (node.Shape is ImageShape)
+        {
+            if (annocount == 1)
+            {
+                node.Width = 150;
+                node.Annotations[0].Offset = new DiagramPoint(0.5, 0.5);
+            }
+
+            if (annocount == 2)
+            {
+                node.Width = 150;
+                node.Annotations[0].Offset = new DiagramPoint(0.6, 0.25);
+                node.Annotations[1].Offset = new DiagramPoint(0.6, 0.70);
+            }
+
+            if (annocount == 3)
+            {
+                node.Width = 200;
+                node.Annotations[0].Offset = new DiagramPoint(0.5, 0.20);
+                node.Annotations[1].Offset = new DiagramPoint(0.5, 0.50);
+                node.Annotations[2].Offset = new DiagramPoint(0.5, 0.80);
+            }
+
+            if (annocount == 4)
+            {
+                node.Width = 200;
+                node.Annotations[0].Offset = new DiagramPoint(0.7, 0.12);
+                node.Annotations[1].Offset = new DiagramPoint(0.7, 0.37);
+                node.Annotations[2].Offset = new DiagramPoint(0.7, 0.62);
+                node.Annotations[3].Offset = new DiagramPoint(0.7, 0.87);
+            }
+
+            if (annocount == 5)
+            {
+                node.Width = 200;
+                node.Annotations[0].Offset = new DiagramPoint(0.7, 0.10);
+                node.Annotations[1].Offset = new DiagramPoint(0.7, 0.30);
+                node.Annotations[2].Offset = new DiagramPoint(0.7, 0.50);
+                node.Annotations[3].Offset = new DiagramPoint(0.7, 0.70);
+                node.Annotations[4].Offset = new DiagramPoint(0.7, 0.90);
+            }
+
+            if (annocount == 6)
+            {
+                node.Width = 200;
+                node.Annotations[0].Offset = new DiagramPoint(0.7, 0.10);
+                node.Annotations[1].Offset = new DiagramPoint(0.7, 0.26);
+                node.Annotations[2].Offset = new DiagramPoint(0.7, 0.42);
+                node.Annotations[3].Offset = new DiagramPoint(0.7, 0.58);
+                node.Annotations[4].Offset = new DiagramPoint(0.7, 0.74);
+                node.Annotations[5].Offset = new DiagramPoint(0.7, 0.90);
+            }
+
+            if (annocount == 7)
+            {
+                node.Width = 250;
+                node.Annotations[0].Offset = new DiagramPoint(0.7, 0.08);
+                node.Annotations[1].Offset = new DiagramPoint(0.7, 0.22);
+                node.Annotations[2].Offset = new DiagramPoint(0.7, 0.36);
+                node.Annotations[3].Offset = new DiagramPoint(0.7, 0.50);
+                node.Annotations[4].Offset = new DiagramPoint(0.7, 0.64);
+                node.Annotations[5].Offset = new DiagramPoint(0.7, 0.78);
+                node.Annotations[6].Offset = new DiagramPoint(0.7, 0.92);
+            }
+
+            if (annocount == 8)
+            {
+                node.Width = 250;
+                node.Annotations[0].Offset = new DiagramPoint(0.7, 0.08);
+                node.Annotations[1].Offset = new DiagramPoint(0.7, 0.20);
+                node.Annotations[2].Offset = new DiagramPoint(0.7, 0.32);
+                node.Annotations[3].Offset = new DiagramPoint(0.7, 0.44);
+                node.Annotations[4].Offset = new DiagramPoint(0.7, 0.56);
+                node.Annotations[5].Offset = new DiagramPoint(0.7, 0.68);
+                node.Annotations[6].Offset = new DiagramPoint(0.7, 0.80);
+                node.Annotations[7].Offset = new DiagramPoint(0.7, 0.92);
+            }
+            if (annocount == 9)
+            {
+                node.Width = 250;
+                node.Annotations[0].Offset = new DiagramPoint(0.7, 0.15);
+                node.Annotations[1].Offset = new DiagramPoint(0.7, 0.25);
+                node.Annotations[2].Offset = new DiagramPoint(0.7, 0.35);
+                node.Annotations[3].Offset = new DiagramPoint(0.7, 0.45);
+                node.Annotations[4].Offset = new DiagramPoint(0.7, 0.55);
+                node.Annotations[5].Offset = new DiagramPoint(0.7, 0.65);
+                node.Annotations[6].Offset = new DiagramPoint(0.7, 0.75);
+                node.Annotations[7].Offset = new DiagramPoint(0.7, 0.85);
+                node.Annotations[8].Offset = new DiagramPoint(0.7, 0.95);
+            }
+            if (annocount == 10)
+            {
+                node.Width = 250;
+                node.Annotations[0].Offset = new DiagramPoint(0.7, 0.15);
+                node.Annotations[1].Offset = new DiagramPoint(0.7, 0.25);
+                node.Annotations[2].Offset = new DiagramPoint(0.7, 0.35);
+                node.Annotations[3].Offset = new DiagramPoint(0.7, 0.45);
+                node.Annotations[4].Offset = new DiagramPoint(0.7, 0.55);
+                node.Annotations[5].Offset = new DiagramPoint(0.7, 0.65);
+                node.Annotations[6].Offset = new DiagramPoint(0.7, 0.75);
+                node.Annotations[7].Offset = new DiagramPoint(0.7, 0.85);
+                node.Annotations[8].Offset = new DiagramPoint(0.7, 0.95);
+                node.Annotations[9].Offset = new DiagramPoint(0.7, 1);
+            }
+            foreach (ShapeAnnotation annotation in node.Annotations)
+            {
+                int anno = annotation.Content.Length;
+                if (anno > 20)
+                {
+                    node.Width = 300;
+
+                }
+            }
+
+        }
+        else
+        {
+            if (annocount == 0)
+            {
+                node.Height = 50;
+                node.Width = 150;
+            }
+            if (annocount == 1)
+            {
+                node.Annotations[0].Offset = new DiagramPoint(0.5, 0.5);
+                node.Height = 50;
+                node.Width = 150;
+            }
+
+            if (annocount == 2)
+            {
+                node.Height = 50;
+
+                node.Annotations[0].Offset = new DiagramPoint(0.5, 0.25);
+                node.Annotations[1].Offset = new DiagramPoint(0.5, 0.70);
+            }
+
+            if (annocount == 3)
+            {
+                node.Height = 60;
+                node.Annotations[0].Offset = new DiagramPoint(0.5, 0.20);
+                node.Annotations[1].Offset = new DiagramPoint(0.5, 0.50);
+                node.Annotations[2].Offset = new DiagramPoint(0.5, 0.80);
+            }
+
+            if (annocount == 4)
+            {
+                node.Annotations[0].Offset = new DiagramPoint(0.5, 0.12);
+                node.Annotations[1].Offset = new DiagramPoint(0.5, 0.37);
+                node.Annotations[2].Offset = new DiagramPoint(0.5, 0.62);
+                node.Annotations[3].Offset = new DiagramPoint(0.5, 0.87);
+            }
+
+            if (annocount == 5)
+            {
+                node.Annotations[0].Offset = new DiagramPoint(0.5, 0.10);
+                node.Annotations[1].Offset = new DiagramPoint(0.5, 0.30);
+                node.Annotations[2].Offset = new DiagramPoint(0.5, 0.50);
+                node.Annotations[3].Offset = new DiagramPoint(0.5, 0.70);
+                node.Annotations[4].Offset = new DiagramPoint(0.5, 0.90);
+            }
+
+            if (annocount == 6)
+            {
+                node.Annotations[0].Offset = new DiagramPoint(0.5, 0.10);
+                node.Annotations[1].Offset = new DiagramPoint(0.5, 0.26);
+                node.Annotations[2].Offset = new DiagramPoint(0.5, 0.42);
+                node.Annotations[3].Offset = new DiagramPoint(0.5, 0.58);
+                node.Annotations[4].Offset = new DiagramPoint(0.5, 0.74);
+                node.Annotations[5].Offset = new DiagramPoint(0.5, 0.90);
+            }
+
+            if (annocount == 7)
+            {
+                node.Annotations[0].Offset = new DiagramPoint(0.5, 0.08);
+                node.Annotations[1].Offset = new DiagramPoint(0.5, 0.22);
+                node.Annotations[2].Offset = new DiagramPoint(0.5, 0.36);
+                node.Annotations[3].Offset = new DiagramPoint(0.5, 0.50);
+                node.Annotations[4].Offset = new DiagramPoint(0.5, 0.64);
+                node.Annotations[5].Offset = new DiagramPoint(0.5, 0.78);
+                node.Annotations[6].Offset = new DiagramPoint(0.5, 0.92);
+            }
+
+            if (annocount == 8)
+            {
+                node.Annotations[0].Offset = new DiagramPoint(0.5, 0.08);
+                node.Annotations[1].Offset = new DiagramPoint(0.5, 0.20);
+                node.Annotations[2].Offset = new DiagramPoint(0.5, 0.32);
+                node.Annotations[3].Offset = new DiagramPoint(0.5, 0.44);
+                node.Annotations[4].Offset = new DiagramPoint(0.5, 0.56);
+                node.Annotations[5].Offset = new DiagramPoint(0.5, 0.68);
+                node.Annotations[6].Offset = new DiagramPoint(0.5, 0.80);
+                node.Annotations[7].Offset = new DiagramPoint(0.5, 0.92);
+            }
+            if (annocount == 9)
+            {
+                node.Annotations[0].Offset = new DiagramPoint(0.5, 0.15);
+                node.Annotations[1].Offset = new DiagramPoint(0.5, 0.25);
+                node.Annotations[2].Offset = new DiagramPoint(0.5, 0.35);
+                node.Annotations[3].Offset = new DiagramPoint(0.5, 0.45);
+                node.Annotations[4].Offset = new DiagramPoint(0.5, 0.55);
+                node.Annotations[5].Offset = new DiagramPoint(0.5, 0.65);
+                node.Annotations[6].Offset = new DiagramPoint(0.5, 0.75);
+                node.Annotations[7].Offset = new DiagramPoint(0.5, 0.85);
+                node.Annotations[8].Offset = new DiagramPoint(0.5, 0.95);
+            }
+            if (annocount == 10)
+            {
+                node.Annotations[0].Offset = new DiagramPoint(0.5, 0.15);
+                node.Annotations[1].Offset = new DiagramPoint(0.5, 0.25);
+                node.Annotations[2].Offset = new DiagramPoint(0.5, 0.35);
+                node.Annotations[3].Offset = new DiagramPoint(0.5, 0.45);
+                node.Annotations[4].Offset = new DiagramPoint(0.5, 0.55);
+                node.Annotations[5].Offset = new DiagramPoint(0.5, 0.65);
+                node.Annotations[6].Offset = new DiagramPoint(0.5, 0.75);
+                node.Annotations[7].Offset = new DiagramPoint(0.5, 0.85);
+                node.Annotations[8].Offset = new DiagramPoint(0.5, 0.95);
+                node.Annotations[9].Offset = new DiagramPoint(0.5, 1);
+            }
+        }
+    }
+    /// <summary>
+    /// Event handler for the value change event of a textbox.
+    /// Updates the TextBoxDictionary with the new value based on the node ID and the textbox value.
+    /// </summary>
+    /// <param name="args">The event arguments containing the new value of the textbox.</param>
+    /// <param name="value">The identifier of the textbox being changed.</param>
+    private void TextBoxValueChangeHandler(ChangedEventArgs args, string value)
+    {
+        var nodeID = this.Parent.DiagramContent.Diagram.SelectionSettings.Nodes[0].ID;
+        var textboxSplit = (value as string).Split("Text");
+        string substringToRemove = "Text";
+        string resultString = value.Replace(substringToRemove, "");
+        if (TextBoxDictionary.ContainsKey(nodeID))
+        {
+            foreach (KeyValuePair<string, Dictionary<string, string>> valuePairs in TextBoxDictionary)
+            {
+                if (valuePairs.Key == nodeID)
+                {
+                    Dictionary<string, string> listitems = valuePairs.Value;
+
+
+                    foreach (KeyValuePair<string, string> keyValue in listitems)
+                    {
+                        string textBox = keyValue.Key.ToString();
+                        if (resultString == textBox)
+                        {
+                            var dict = new Dictionary<string, string>();
+                            dict.Add(keyValue.Key, keyValue.Value);
+                            listitems[keyValue.Key] = args.Value.ToString();
+                        }
+                    }
+                    if (!listitems.ContainsKey(resultString))
+                    {
+                        textboxSplit = (value as string).Split("Text");
+                        listitems.Add(resultString, args.Value.ToString());
+                    }
+                }
+            }
+        }
+        else
+        {
+            Dictionary<string, string> values = new Dictionary<string, string>();
+            values.Add(value, args.Value.ToString());
+            TextBoxDictionary.Add(nodeID, values);
+        }
+    }
+    /// <summary>
+    /// Event handler for the value change event of a checkbox in the data source.
+    /// Updates the DataSourceDictionary with the new value based on the checkbox ID and the new checked state.
+    /// </summary>
+    /// <param name="args">The event arguments containing the new checked state of the checkbox.</param>
+    /// <param name="value">The identifier of the checkbox being changed.</param>
+    public void DataSourceCheckBoxValueChangeHandler(Syncfusion.Blazor.Buttons.ChangeEventArgs<bool> args, string value)
+    {
+        var dictionary = new Dictionary<string, bool>();
+        dictionary.Add(value, args.Checked);
+        if (DataSourceDictionary.ContainsKey(value))
+        {
+            DataSourceDictionary[value] = args.Checked;
+        }
+
+    }
+    // <summary>
+    /// Event handler for the value change event of a checkbox in the diagram.
+    /// Updates the CheckBoxDictionary with the new value based on the node ID and the checkbox value.
+    /// </summary>
+    /// <param name="args">The event arguments containing the new checked state of the checkbox.</param>
+    /// <param name="value">The identifier of the checkbox being changed.</param>
+    public void CheckBoxValueChangeHandler(Syncfusion.Blazor.Buttons.ChangeEventArgs<bool> args, string value)
+    {
+        var nodeID = this.Parent.DiagramContent.Diagram.SelectionSettings.Nodes[0].ID;
+        var checkbox = (value as string).Split("Checkbox");
+        string substringToRemove = "Checkbox";
+        string resultString = value.Replace(substringToRemove, "");
+        if (CheckBoxDictionary.ContainsKey(nodeID))
+        {
+            foreach (KeyValuePair<string, Dictionary<string, bool>> valuePairs in CheckBoxDictionary)
+            {
+                if (valuePairs.Key == nodeID)
+                {
+                    Dictionary<string, bool> listitems = valuePairs.Value;
+
+
+                    foreach (KeyValuePair<string, bool> innerKvp in listitems)
+                    {
+                        string textBox = innerKvp.Key.ToString();
+                        if (resultString == textBox)
+                        {
+                            var dict = new Dictionary<string, bool>();
+                            var dict1 = new Dictionary<string, bool>();
+                            dict.Add(innerKvp.Key, innerKvp.Value);
+                            dict1.Add(innerKvp.Key, !args.Checked);
+                            listitems[innerKvp.Key] = (bool)args.Checked;
+                        }
+                    }
+                    if (!listitems.ContainsKey(resultString))
+                    {
+                        checkbox = (value as string).Split("Checkbox");
+                        listitems.Add(resultString, (bool)args.Checked);
+                    }
+                }
+            }
+        }
+        else
+        {
+            Dictionary<string, bool> values = new Dictionary<string, bool>();
+            bool isChecked = (bool)args.Checked;
+            values.Add(value, isChecked);
+            CheckBoxDictionary.Add(nodeID, values);
+        }
+    }
+    /// <summary>
+    /// Event handler for the value change event of the add property textbox.
+    /// Updates the textboxValue and the addPropertyButton state based on the textbox value.
+    /// </summary>
+    /// <param name="args">The new value of the add property textbox.</param>
+    private void AddproertyValueChangeHandler(String args)
+    {
+        textboxValue = args;
+
+        if (!string.IsNullOrEmpty(textboxValue))
+        {
+            addPropertyButton = false;
+        }
+        else
+        {
+            addPropertyButton = true;
+        }
+
+    }
+    /// <summary>
+    /// Adds a new property to the selected node based on the textboxValue.
+    /// Updates TextBoxDictionary and CheckBoxDictionary with the new property and its default value (false for checkboxes).
+    /// </summary>
+    private async Task AddProperty()
+    {
+        string id = this.Parent.DiagramContent.Diagram.SelectionSettings.Nodes[0].ID;
+        if (TextBoxDictionary[id].ContainsKey(textboxValue))
+        {
+            await DialogService.AlertAsync("You try to add same property for node", "", new DialogOptions()
+                {
+                    PrimaryButtonOptions = new DialogButtonOptions() { Content = "Ok" }
+                });
+        }
+        else
+        {
+            string textbox = "Text" + textboxValue;
+            string checkbox = "Checkbox" + textboxValue;
+            Dictionary<string, string> pairs = new Dictionary<string, string>();
+            pairs.Add(textbox, textboxValue);
+
+            Dictionary<string, bool> pairs1 = new Dictionary<string, bool>();
+            pairs1.Add(checkbox, false);
+
+            foreach (KeyValuePair<string, Dictionary<string, string>> valuePairs in TextBoxDictionary)
+            {
+                if (valuePairs.Key == id)
+                {
+                    Dictionary<string, string> listitems = valuePairs.Value;
+                    if (!listitems.ContainsKey(textboxValue))
+                    {
+
+                        listitems.Add(textboxValue, "");
+                    }
+                }
+            }
+            foreach (KeyValuePair<string, Dictionary<string, bool>> valuePairs1 in CheckBoxDictionary)
+            {
+                if (valuePairs1.Key == id)
+                {
+                    Dictionary<string, bool> listitems2 = valuePairs1.Value;
+
+                    if (!listitems2.ContainsKey(textboxValue))
+                    {
+
+                        listitems2.Add(textboxValue, false);
+                    }
+                }
+            }
+            if (DeleteDictionary.ContainsKey(id))
+            {
+                foreach (KeyValuePair<string, List<string>> valuePairs2 in DeleteDictionary)
+                {
+                    List<string> deleteInformation = valuePairs2.Value;
+                    deleteInformation.Add(textboxValue);
+                }
+            }
+            else
+            {
+                List<string> deleteInformations = new List<string>();
+                deleteInformations.Add(textboxValue);
+                DeleteDictionary.Add(id, deleteInformations);
+            }
+        }
+        isAddPropertyClick = true;
+        addPropertyTextBox.Value = "";
+    }
+    /// <summary>
+    /// Initiates the download of the diagram data in different formats based on the value of checkFormat.
+    /// Calls JavaScript interop methods for downloading CSV or XML files, or downloads JSON data as a file.
+    /// </summary>
+    private async Task Download()
+    {
+        if (checkFormat == "CSV")
+            await js.InvokeAsync<string>("downloadCsv");
+        else if (checkFormat == "XML")
+            await js.InvokeAsync<string>("downloadXML");
+        else
+            await FileUtil.DownloadFile(js, data, "DataSourceJson");
+    }
+    /// <summary>
+    /// Event handler for the successful file upload event.
+    /// Retrieves information about the uploaded files and updates the fileCount.
+    /// </summary>
+    /// <param name="args">The event arguments containing information about the uploaded files.</param>
+    public async Task OnUploadSuccess(SuccessEventArgs args)
+    {
+        files = await uploadObj.GetFilesData();
+
+        fileCount = files.Count;
+        if (args.Operation != "remove")
+        {
+            var file1 = args.File;
+            var file = file1.RawFile;
+            var fileType = file1.Type.ToString();
+        }
+    }
+    /// <summary>
+    /// Event handler for the closed event of the dialog.
+    /// Restores the original values of TextBoxDictionary and CheckBoxDictionary for the selected node
+    /// if the dialog was closed using the close icon. Hides the dialog after handling the event.
+    /// </summary>
+    /// <param name="args">The event arguments containing information about how the dialog was closed.</param>
+    public void ClosedHandler(CloseEventArgs args)
+    {
+        if (args.ClosedBy.ToString() == "Close Icon")
+        {
+            if (this.Parent.DiagramContent.Diagram.SelectionSettings.Nodes.Count > 0)
+            {
+                string nodeID = this.Parent.DiagramContent.Diagram.SelectionSettings.Nodes[0].ID;
+                var textBoxDictionary = new Dictionary<string, string>();
+                var textBoxValuesDictionary = new Dictionary<string, string>();
+                var checkBoxDictionary = new Dictionary<string, bool>();
+                var checkBoxValuesDictionary = new Dictionary<string, bool>();
+
+                foreach (KeyValuePair<string, Dictionary<string, string>> previoustext in OriginalTextBoxValuesDictionary)
+                {
+                    if (previoustext.Key == nodeID)
+                    {
+                        textBoxDictionary = previoustext.Value;
+                        foreach (KeyValuePair<string, string> valuePair1 in textBoxDictionary)
+                        {
+                            foreach (KeyValuePair<string, Dictionary<string, string>> previoustext2 in TextBoxDictionary)
+                            {
+                                textBoxValuesDictionary = previoustext.Value;
+
+
+                            }
+                            IEnumerable<string> commonKeys = textBoxValuesDictionary.Keys.Intersect(textBoxDictionary.Keys);
+                            TextBoxDictionary.Remove(nodeID);
+                            var tempDictionayValues = new Dictionary<string, string>();
+                            foreach (string keys in commonKeys)
+                            {
+                                string val = OriginalTextBoxValuesDictionary[nodeID][keys];
+
+                                tempDictionayValues.Add(keys, val);
+                            }
+                            TextBoxDictionary.Add(nodeID, tempDictionayValues);
+                        }
+                    }
+                }
+                foreach (KeyValuePair<string, Dictionary<string, bool>> checkboxValue in OriginalCheckBoxValuesDictionary)
+                {
+                    if (checkboxValue.Key == nodeID)
+                    {
+                        checkBoxDictionary = checkboxValue.Value;
+                        foreach (KeyValuePair<string, bool> valuePair1 in checkBoxDictionary)
+                        {
+                            foreach (KeyValuePair<string, Dictionary<string, bool>> checkbox in CheckBoxDictionary)
+                            {
+                                checkBoxValuesDictionary = checkboxValue.Value;
+
+                            }
+                            IEnumerable<string> commonKeys = checkBoxDictionary.Keys.Intersect(checkBoxValuesDictionary.Keys);
+                            CheckBoxDictionary.Remove(nodeID);
+                            var tempDictionayValues = new Dictionary<string, bool>();
+                            foreach (string keys in commonKeys)
+                            {
+                                bool val = OriginalCheckBoxValuesDictionary[nodeID][keys];
+
+                                tempDictionayValues.Add(keys, val);
+
+                            }
+                            CheckBoxDictionary.Add(nodeID, tempDictionayValues);
+                        }
+                    }
+                }
+            }
+        }
+        dialogVisibility = false;
+    }
+    /// <summary>
+    /// Updates the tooltip information of a Node object based on the given key-value pair.
+    /// </summary>
+    /// <param name="node">The Node object to update the tooltip for.</param>
+    /// <param name="key">The key specifying the field to be updated.</param>
+    /// <param name="value">The new value to set for the specified field.</param>
+    public void UpdateTooltip(Node node, string key, string value)
+    {
+        if (node.Data is OrgChartDetails)
+        {
+            switch (key)
+            {
+                case "Name":
+                    (node.Data as OrgChartDetails).Name = value;
+                    break;
+                case "EmployeeID":
+                    (node.Data as OrgChartDetails).EmployeeID = value;
+                    break;
+                case "Email":
+                    (node.Data as OrgChartDetails).Email = value;
+                    break;
+                case "ImageURL":
+                    (node.Data as OrgChartDetails).ImageURL = value;
+                    break;
+                case "Location":
+                    (node.Data as OrgChartDetails).Location = value;
+                    break;
+                case "Phone":
+                    (node.Data as OrgChartDetails).Phone = value;
+                    break;
+
+                case "SupervisorName":
+                    (node.Data as OrgChartDetails).SupervisorName = value;
+                    break;
+                case "SupervisorID":
+                    (node.Data as OrgChartDetails).SupervisorID = value;
+                    break;
+                case "Role":
+                    (node.Data as OrgChartDetails).Role = value;
+                    break;
+                case "Department":
+                    (node.Data as OrgChartDetails).Department = value;
+                    break;
+            }
+        }
+    }
+    /// <summary>
+    /// Event handler for the file selection event when uploading files.
+    /// Processes the uploaded file based on its type (JSON, XML, or CSV).
+    /// Updates dropdown data sources and related properties based on the file data.
+    /// </summary>
+    /// <param name="args">The event arguments containing information about the uploaded file.</param>
+    public async Task OnUploadFileSelected(Syncfusion.Blazor.Inputs.UploadingEventArgs args)
+    {
+        if (fileCount == 0)
+        {
+            await supervisorDropdownList.RefreshDataAsync();
+            await employeeDropdownList.RefreshDataAsync();
+            SfDiagramComponent Diagram = Parent.DiagramContent.Diagram;
+            if (args.FileData.Type == "json")
+            {
+
+                await Task.Delay(100);
+
+                json = await FileUtil.LoadFile(js, args.FileData);
+                orgChartDetails = System.Text.Json.JsonSerializer.Deserialize<List<OrgChartDetails>>(json.ToString());
+                var obj = System.Text.Json.JsonSerializer.Deserialize<List<object>>(json.ToString());
+                for (int i = 0; i < obj.Count; i++)
+                {
+
+                    var jsonString = obj[i];
+                    var objects = JsonSerializer.Deserialize<Dictionary<string, string>>(jsonString.ToString());
+
+                    employeDetails.Add(objects);
+                }
+                for (int j = 0; j < employeDetails.Count; j++)
+                {
+                    var val = employeDetails[j];
+                    foreach (var item in val)
+                    {
+                        if (tempDropdownDataSource.IndexOf(item.Key) == -1)
+                        {
+                            tempDropdownDataSource.Add(item.Key);
+                        }
+                    }
+
+                }
+
+
+            }
+            else if (args.FileData.Type == "xml")
+            {
+                string json = await FileUtil.LoadXMLFile(js, args.FileData);
+                System.Xml.XmlDocument xmlDom = new System.Xml.XmlDocument();
+                xmlDom.LoadXml(json);
+                System.Xml.XmlElement element = xmlDom.DocumentElement;
+                var datasource = ConvertXmlToJson(element);
+                for (int j = 0; j < datasource.Count; j++)
+                {
+                    var val = datasource[j];
+                    foreach (var item in val)
+                    {
+                        if (tempDropdownDataSource.IndexOf(item.Key) == -1)
+                        {
+                            tempDropdownDataSource.Add(item.Key);
+                        }
+                    }
+                }
+                dataSourceDetails = new List<OrgChartDetails>();
+                foreach (Dictionary<string, string> dict in datasource)
+                {
+                    OrgChartDetails hierarchicalDetails = new OrgChartDetails();
+
+                    hierarchicalDetails.Name = dict["Name"];
+                    hierarchicalDetails.Role = dict["Role"];
+                    hierarchicalDetails.SupervisorName = dict["SupervisorName"];
+                    hierarchicalDetails.Department = dict["Department"];
+                    hierarchicalDetails.Location = dict["Location"];
+                    hierarchicalDetails.Phone = dict["Phone"];
+                    hierarchicalDetails.Email = dict["Email"];
+                    hierarchicalDetails.ImageURL = dict["ImageURL"];
+                    hierarchicalDetails.EmployeeID = dict["ID"];
+                    if (dict.ContainsKey("ParentID") && dict["ParentID"] != null)
+                    {
+                        hierarchicalDetails.SupervisorID = dict["ParentID"];
+                    }
+                    else
+                    {
+                        hierarchicalDetails.SupervisorID = "";
+                    }
+                    dataSourceDetails.Add(hierarchicalDetails);
+                    isXML = true;
+                }
+
+            }
+            else
+            {
+                string json = await FileUtil.LoadCSVFile(js, args.FileData);
+
+                var lines = ParseCsv(json);
+                orgChartDetails = new List<OrgChartDetails>();
+                foreach (Dictionary<string, string> dict in lines)
+                {
+                    OrgChartDetails hierarchicalDetails = new OrgChartDetails();
+
+                    hierarchicalDetails.Name = dict["Name"];
+                    hierarchicalDetails.EmployeeID = dict["EmployeeID"];
+                    hierarchicalDetails.Role = dict["Role"];
+                    hierarchicalDetails.SupervisorID = dict["SupervisorID"];
+                    hierarchicalDetails.SupervisorName = dict["SupervisorName"];
+                    hierarchicalDetails.Department = dict["Department"];
+                    hierarchicalDetails.Location = dict["Location"];
+                    hierarchicalDetails.Phone = dict["Phone"];
+                    hierarchicalDetails.Email = dict["Email"];
+                    hierarchicalDetails.ImageURL = dict["ImageURL"];
+
+                    orgChartDetails.Add(hierarchicalDetails);
+                }
+
+                for (int j = 0; j < lines.Count; j++)
+                {
+                    var val = lines[j];
+                    foreach (var item in val)
+                    {
+                        if (tempDropdownDataSource.IndexOf(item.Key) == -1)
+                        {
+                            tempDropdownDataSource.Add(item.Key);
+                        }
+                    }
+                }
+
+            }
+            dropdownDataSource = tempDropdownDataSource;
+            DataSourceDictionaryUpdate();
+            await supervisorDropdownList.RefreshDataAsync();
+            await employeeDropdownList.RefreshDataAsync();
+            files = await uploadObj.GetFilesData();
+
+            fileCount = files.Count;
+        }
+    }
+    /// <summary>
+    /// Updates the DataSourceDictionary with properties of the OrgChartDetails class and their checked state for display in dropdowns.
+    /// </summary>
+    private void DataSourceDictionaryUpdate()
+    {
+        var data = new OrgChartDetails();
+        bool ischecked;
+        foreach (System.Reflection.PropertyInfo property in typeof(OrgChartDetails).GetProperties())
+        {
+            if (property.Name.ToString() == "Name" || property.Name.ToString() == "Role")
+            {
+                ischecked = true;
+            }
+            else
+            {
+                ischecked = false;
+            }
+            DataSourceDictionary.Add(property.Name.ToString(), ischecked);
+        }
+
+    }
+    /// <summary>
+    /// Converts an XML element and its child elements into a list of dictionaries representing JSON-like data.
+    /// </summary>
+    /// <param name="element">The XML element to convert to JSON-like data.</param>
+    /// <returns>A list of dictionaries representing the converted JSON-like data.</returns>
+    public List<Dictionary<string, string>> ConvertXmlToJson(System.Xml.XmlElement element)
+    {
+        var dataSource = new List<Dictionary<string, string>>();
+        for (int i = 0; i < element.ChildNodes.Count; i++)
+        {
+            var childElement = (System.Xml.XmlElement)element.ChildNodes[i];
+            var rowData = GenerateRowData(childElement, dataSource.Count.ToString(), "");
+            if (rowData.Keys.Count > 0)
+            {
+                dataSource.Add(rowData);
+            }
+            if (childElement.ChildNodes.Count > 0)
+            {
+                var key = "ID";
+                ConvertChildXmlToJson(childElement, rowData[key].ToString(), dataSource);
+            }
+        }
+        return dataSource;
+    }
+    /// <summary>
+    /// Generates a dictionary representing a row of data from an XML element.
+    /// </summary>
+    /// <param name="element">The XML element to generate row data from.</param>
+    /// <param name="index">The index of the row data.</param>
+    /// <param name="parentid">The parent ID of the row data.</param>
+    /// <returns>A dictionary representing the generated row data.</returns>
+    private Dictionary<string, string> GenerateRowData(System.Xml.XmlElement element, string index, string parentid = "")
+    {
+        var rowData = new Dictionary<string, string>();
+        var attributes = element.Attributes;
+        if (attributes != null)
+        {
+            for (int i = 0; i < attributes.Count; i++)
+            {
+                rowData.Add(attributes[i].Name, attributes[i].Value);
+            }
+        }
+        string key = "ID";
+        rowData[key] = index;
+        if (!string.IsNullOrEmpty(parentid))
+        {
+            key = "ParentID";
+            rowData[key] = parentid;
+        }
+        return rowData;
+    }
+    /// <summary>
+    /// Converts the child elements of the given XML element into a list of dictionaries representing JSON-like data.
+    /// </summary>
+    /// <param name="element">The XML element to convert to JSON-like data.</param>
+    /// <param name="parentId">The parent ID for the child elements.</param>
+    /// <param name="dataSource">The list of dictionaries representing the JSON-like data.</param>
+    private void ConvertChildXmlToJson(System.Xml.XmlElement element, string parentId, List<Dictionary<string, string>> dataSource)
+    {
+        for (int i = 0; i < element.ChildNodes.Count; i++)
+        {
+            var childElement = (System.Xml.XmlElement)element.ChildNodes[i];
+            var rowData = GenerateRowData(childElement, dataSource.Count.ToString(), "");
+            if (rowData.Keys.Count > 0)
+            {
+                rowData.Add("ParentID", parentId);
+                dataSource.Add(rowData);
+            }
+            if (childElement.ChildNodes.Count > 0)
+            {
+                var key = "ID";
+                ConvertChildXmlToJson(childElement, rowData[key].ToString(), dataSource);
+            }
+        }
+    }
+    /// <summary>
+    /// Parses CSV data and converts it into a list of dictionaries representing the CSV data.
+    /// </summary>
+    /// <param name="csvText">The CSV data to be parsed.</param>
+    /// <returns>A list of dictionaries representing the parsed CSV data.</returns>
+    public List<Dictionary<string, string>> ParseCsv(string csvText)
+    {
+        var allTextLines = csvText.Split(new[] { "\r\n", "\n" }, StringSplitOptions.None);
+        var columnsList = allTextLines[0].Split(',');
+        var lines = new List<Dictionary<string, string>>();
+
+        for (int i = 1; i < allTextLines.Length; i++)
+        {
+            if (!string.IsNullOrEmpty(allTextLines[i]))
+            {
+                var data = allTextLines[i].Split(',');
+
+                var tarr = new Dictionary<string, string>();
+                for (int j = 0; j < columnsList.Length; j++)
+                {
+                    if (data[j].Trim().StartsWith("\"") && !data[j].Trim().EndsWith("\""))
+                    {
+                        while (!data[j].Trim().EndsWith("\""))
+                        {
+                            data[j] = data[j] + "," + data[j + 1];
+                            data = data.Where((val, idx) => idx != j + 1).ToArray();
+                        }
+                    }
+                    tarr[columnsList[j]] = data[j];
+                }
+                lines.Add(tarr);
+            }
+        }
+
+        return lines;
+    }
+    /// <summary>
+    /// Binds values to the diagram based on the data source (XML or non-XML).
+    /// Clears existing diagram elements and creates new nodes and connectors accordingly.
+    /// </summary>
+    public async Task BindingValues()
+    {
+        IsUploderFirstTime = true;
+        IsLayout = true;
+        Parent.DiagramContent.Diagram.Clear();
+        this.Parent.DiagramContent.nodes.Clear();
+        this.Parent.DiagramContent.connectors.Clear();
+        this.NodeCollection.Clear();
+        if (isXML)
+        {
+            for (int i = 0; i < dataSourceDetails.Count; i++)
+            {
+                string name = dataSourceDetails[i].Name.ToString();
+                string[] splitString = name.Split(" ");
+                Node node = new Node()
+                    {
+                        ID = splitString[0] + dataSourceDetails[i].EmployeeID.ToString(),
+                        Data = dataSourceDetails[i],
+                    };
+                UpdateAnnotationPosition(node);
+                NodeCollection.Add(node);
+            }
+            CreateConnector("connector1", "Carine1", "Maria0");
+            CreateConnector("connector2", "Daniel2", "Maria0");
+            CreateConnector("connector3", "Alex3", "Daniel2");
+            CreateConnector("connector4", "Jones4", "Daniel2");
+            CreateConnector("connector5", "Rene5", "Daniel2");
+        }
+        else
+        {
+            for (int i = 0; i < orgChartDetails.Count; i++)
+            {
+                string name = orgChartDetails[i].Name.ToString();
+                string[] splitString = name.Split(" ");
+                Node node = new Node()
+                    {
+                        ID = splitString[0] + orgChartDetails[i].EmployeeID.ToString(),
+                        Data = orgChartDetails[i],
+                    };
+                UpdateAnnotationPosition(node);
+                NodeCollection.Add(node);
+
+            }
+
+
+            CreateConnector("connector1", "Carine2", "Maria1");
+            CreateConnector("connector2", "Daniel3", "Maria1");
+            CreateConnector("connector3", "Alex4", "Daniel3");
+            CreateConnector("connector4", "Jones5", "Daniel3");
+            CreateConnector("connector5", "Rene6", "Daniel3");
+        }
+
+
+        await this.Parent.DiagramContent.Diagram.AddDiagramElements(NodeCollection);
+
+        await this.Parent.DiagramContent.Diagram.DoLayout();
+        StateHasChanged();
+        this.Parent.StateChanged();
+        IsUploderFirstTime = false;
+    }
+    /// <summary>
+    /// Creates a connector between two nodes with the specified IDs and adds it to the node collection.
+    /// </summary>
+    /// <param name="id">The ID of the connector.</param>
+    /// <param name="EmployeeID">The ID of the employee node.</param>
+    /// <param name="SupervisorId">The ID of the supervisor node.</param>
+    private void CreateConnector(string id, string EmployeeID, string SupervisorId)
+    {
+        Connector connector = new Connector()
+            {
+                ID = id,
+                SourceID = SupervisorId,
+                TargetID = EmployeeID,
+                Type = ConnectorSegmentType.Orthogonal,
+            };
+        NodeCollection.Add(connector);
+    }
+    /// <summary>
+    /// Handles the "Next" button click event and performs actions based on the current state of the import dialog.
+    /// </summary>
+    public async Task Next()
+    {
+        if (importDialog.Header == "Define Employee Information")
+        {
+            TextBoxDictionary.Clear();
+            OriginalCheckBoxValuesDictionary.Clear();
+            CheckBoxDictionary.Clear();
+            DeleteDictionary.Clear();
+            ApplyDictionary.Clear();
+            OriginalTextBoxValuesDictionary.Clear();
+            await importDialog.HideAsync(); await BindingValues();
+        }
+        else if (importDialog.Header == "Define Employee - Supervisor Relationship")
+        {
+            {
+
+
+                if ((supervisorID == "SupervisorID" && employeID == "EmployeeID") || (supervisorID == "ParentID" && employeID == "ID"))
+                {
+                    importDialog.Header = "Define Employee Information";
+                    dialogboxVisible = "none";
+                    dialogboxSecondPade = "none";
+                    dialogboxThirdPade = "block";
+                }
+                else
+                {
+                    await DialogService.AlertAsync("We have not found the parent child relationship between the chosen fields", "", new DialogOptions()
+                        {
+                            PrimaryButtonOptions = new DialogButtonOptions() { Content = "Ok" }
+                        });
+                }
+            }
+           
+
+        }
+        else if (importDialog.Header == "Upload" && fileCount == 0)
+        {
+            if (fileCount == 0)
+            {
+                await DialogService.AlertAsync("Please upload file", "", new DialogOptions()
+                    {
+                        PrimaryButtonOptions = new DialogButtonOptions() { Content = "Ok" }
+                    });
+            }
+        }
+        else
+        {
+            if (dropdownDataSource.Count > 0){
+            importDialog.Header = "Define Employee - Supervisor Relationship";
+            dialogboxVisible = "none";
+            dialogboxSecondPade = "block";
+            dialogboxThirdPade = "none";
+            }
+            else
+            {
+                await DialogService.AlertAsync("Please upload proper file", "", new DialogOptions()
+                    {
+                        PrimaryButtonOptions = new DialogButtonOptions() { Content = "Ok" }
+                    });
+            }
+
+        }
+        IsUploader = true;
+    }
+    /// <summary>
+    /// Handles the "Cancel" button click event for the import dialog and hides the dialog.
+    /// </summary>
+    public async Task CancelImport()
+    {
+        await importDialog.HideAsync();
+    }
+    /// <summary>
+    /// Inserts a file by opening the upload box in the parent component's menu bar.
+    /// </summary>
+    private async Task InsertFile()
+    {
+        await Parent.MenuBar.OpenUploadBox(true, "");
+    }
+    /// <summary>
+    /// Sets the extension and checkFormat properties to handle the CSV file format.
+    /// Invokes JavaScript function "importDescription" to provide additional information about CSV format.
+    /// </summary>
+    private async Task CSVFormat()
+    {
+        extension = ".csv";
+        this.checkFormat = "CSV";
+        this.content = "Download Example CSV";
+        await js.InvokeAsync<string>("importDescription", "CSV");
+    }
+    /// <summary>
+    /// Sets the extension and checkFormat properties to handle the XML file format.
+    /// Invokes the JavaScript function "importDescription" to provide additional information about XML format.
+    /// </summary>
+    private async Task XMLFormat()
+    {
+        extension = ".xml";
+        this.checkFormat = "XML";
+        this.content = "Download Example XML";
+        await js.InvokeAsync<string>("importDescription", "XML");
+    }
+    /// <summary>
+    /// Sets the extension and checkFormat properties to handle the JSON file format.
+    /// Invokes the JavaScript function "importDescription" to provide additional information about JSON format.
+    /// </summary>
+    private async Task JSONFormat()
+    {
+        extension = ".json";
+        this.checkFormat = "JSON";
+        this.content = "Download Example Json";
+        await js.InvokeAsync<string>("importDescription", "JSON");
+    }
+    /// <summary>
+    /// Handles the import button click event.
+    /// If a file is already uploaded, clears the uploaded file and resets related properties and data.
+    /// Displays the import dialog box and sets the dialog box header to "Upload".
+    /// </summary>
+    public async Task import()
+    {
+        if (fileCount == 1)
+        {
+            await uploadObj.ClearAllAsync();
+            tempDropdownDataSource.Clear();
+            dropdownDataSource.Clear();
+            await supervisorDropdownList.RefreshDataAsync();
+            await employeeDropdownList.RefreshDataAsync();
+            employeID = "";
+            supervisorID = "";
+            checkboxComponent.Value = "false";
+
+            DataSourceDictionary.Clear();
+            fileCount = 0;
+        }
+        this.importDialogBoxVisible = true; importDialog.Header = "Upload";
+        this.dialogboxVisible = "block";
+        this.dialogboxSecondPade = "none"; this.dialogboxThirdPade = "none";
+    }
+    /// <summary>
+    /// Handles the alignment click event.
+    /// Updates the alignment of the diagram content based on the selected alignment value.
+    /// </summary>
+    /// <param name="args">The ClickEventArgs containing information about the alignment click event.</param>
+    public async void OnAlignmentClick(Syncfusion.Blazor.Navigations.ClickEventArgs args)
+    {
+        string alignment = args.Item.TooltipText;
+        await Parent.DiagramContent.UpdateAlignment(alignment);
+
+    }
+    /// <summary>
+    /// Handles the horizontal space change event.
+    /// Updates the horizontal spacing of the diagram content based on the selected value.
+    /// </summary>
+    /// <param name="args">The ChangeEventArgs containing information about the horizontal space change event.</param>
+    private async Task OnHorizontalSpaceChange(Syncfusion.Blazor.Inputs.ChangeEventArgs<int?> args)
+    {
+        horizontalValue = (int)args.Value;
+        await Parent.DiagramContent.UpdateSpacing((int)horizontalValue, "Horizontal");
+    }
+    /// <summary>
+    /// Handles the vertical space change event.
+    /// Updates the vertical spacing of the diagram content based on the selected value.
+    /// </summary>
+    /// <param name="args">The ChangeEventArgs containing information about the vertical space change event.</param>
+    private async Task OnVerticalSpaceChange(Syncfusion.Blazor.Inputs.ChangeEventArgs<int?> args)
+    {
+        verticalValue = (int)args.Value;
+        await Parent.DiagramContent.UpdateSpacing((int)verticalValue, "Vertical");
+    }
+    /// <summary>
+    /// Changes the template value to "template1" and updates the org chart template accordingly.
+    /// </summary>
+    public async Task OrgChartTemplate1()
+    {
+        Templatevalue = "template1";
+        await OrgChartTemplateChange(Templatevalue);
+
+    }
+    /// <summary>
+    /// Changes the template value to "template2" and updates the org chart template accordingly.
+    /// </summary>
+    public async Task OrgChartTemplate2()
+    {
+        Templatevalue = "template2";
+        await OrgChartTemplateChange(Templatevalue);
+    }
+    /// <summary>
+    /// Changes the template value to "template3" and updates the org chart template accordingly.
+    /// </summary>
+    public async Task OrgChartTemplate3()
+    {
+        Templatevalue = "template3";
+        await OrgChartTemplateChange(Templatevalue);
+    }
+    /// <summary>
+    /// Changes the template value to "template4" and updates the org chart template accordingly.
+    /// </summary>
+    public async Task OrgChartTemplate4()
+    {
+        Templatevalue = "template4";
+        await OrgChartTemplateChange(Templatevalue);
+    }
+    /// <summary>
+    /// Updates the organization chart template based on the given template value.
+    /// Clears existing diagram elements and annotations and applies the selected template.
+    /// </summary>
+    /// <param name="template">The template to apply to the organization chart.</param>
+    public async Task OrgChartTemplateChange(string template)
+    {
+        SfDiagramComponent Diagram = Parent.DiagramContent.Diagram;
+        bool imagenode = (template == "template3" || template == "template4") ? true : false;
+        bool bindvalue = (template == "template3" || template == "template4") ? true : false;
+        DiagramObjectCollection<Node> nodess = new DiagramObjectCollection<Node>();
+        string width = "width: 100%;";
+        DiagramObjectCollection<Connector> connectors = new DiagramObjectCollection<Connector>();
+        nodeBases.Clear();
+        foreach (Node node in Diagram.Nodes)
+        {
+            nodess.Add(node);
+        }
+        foreach (Connector connector in Diagram.Connectors)
+        {
+            connectors.Add(connector);
+        }
+        Diagram.Clear();
+        Diagram.Nodes.Clear();
+
+        for (int i = 0; i < nodess.Count; i++)
+        {
+
+            string templates = "";
+            Node node = nodess[i];
+            bool applyClick = false;
+            if (ApplyDictionary.ContainsKey(node.ID))
+            {
+                applyClick = ApplyDictionary[node.ID];
+            }
+            if (!imagenode)
+            {
+                Diagram.StartGroupAction();
+                if (!applyClick && !IsUploader && !this.Parent.MenuBar.IsOpenClick)
+                {
+                    for (int j = 0; j < node.Annotations.Count; j++)
+                    {
+                        node.Annotations.Remove(node.Annotations[j]);
+                    }
+                    if (template == "template1")
+                    {
+                        node.Annotations = new DiagramObjectCollection<ShapeAnnotation>() { new ShapeAnnotation { Content = "Name", Offset = new DiagramPoint() { X = 0.5, Y = 0.5 }, Style = new TextStyle() { Color = "black", Bold = true } } };
+                        if (TextBoxDictionary[node.ID].ContainsKey("Role"))
+                        {
+                            TextBoxDictionary[node.ID].Remove("Role");
+                            OriginalTextBoxValuesDictionary[node.ID].Remove("Role");
+                            CheckBoxDictionary[node.ID].Remove("Role");
+                            OriginalCheckBoxValuesDictionary[node.ID].Remove("Role");
+                            List<string> keys = DeleteDictionary[node.ID];
+                            keys.Remove("Role");
+                            DeleteDictionary[node.ID] = keys;
+                        }
+                    }
+                    else if (template == "template2")
+                    {
+                        node.Annotations = new DiagramObjectCollection<ShapeAnnotation>() { new ShapeAnnotation { Content = "Name", Style = new TextStyle() { Color = "black", FontSize = 10, Bold = true }, Offset = new DiagramPoint() { X = 0.5, Y = 0.4 } }, new ShapeAnnotation { Content = "Role", Style = new TextStyle() { Color = "black", FontSize = 8, Bold = false }, Offset = new DiagramPoint() { X = 0.5, Y = 0.7 } } };
+                        OriginalCheckBoxValuesDictionary[node.ID]["Role"] = true;
+                        CheckBoxDictionary[node.ID]["Role"] = true;
+                        OriginalTextBoxValuesDictionary[node.ID]["Role"] = "Role";
+                        TextBoxDictionary[node.ID]["Role"] = "Role";
+                        List<string> keys = DeleteDictionary[node.ID];
+                        keys.Add("Role");
+                        DeleteDictionary[node.ID] = keys;
+                    }
+
+                }
+                if (node.Data == null && !IsUploader && !this.Parent.MenuBar.IsOpenClick)
+                {
+                    CheckBoxDictionary[node.ID].Remove("ImageURL");
+                    OriginalCheckBoxValuesDictionary[node.ID].Remove("ImageURL");
+                    TextBoxDictionary[node.ID].Remove("ImageURL");
+                    OriginalTextBoxValuesDictionary[node.ID].Remove("ImageURL");
+                }
+                if (TextBoxDictionary[node.ID].ContainsKey("ImageURL") && OriginalTextBoxValuesDictionary[node.ID].ContainsKey("ImageURL") && !IsUploader)
+                {
+                    CheckBoxDictionary[node.ID].Remove("ImageURL");
+                    OriginalCheckBoxValuesDictionary[node.ID].Remove("ImageURL");
+                    TextBoxDictionary[node.ID].Remove("ImageURL");
+                    OriginalTextBoxValuesDictionary[node.ID].Remove("ImageURL");
+                }
+                foreach (KeyValuePair<string, Dictionary<string, string>> textbox in OriginalTextBoxValuesDictionary)
+                {
+                    if (textbox.Key == node.ID)
+                    {
+                        var dictionary = textbox.Value;
+                        foreach (KeyValuePair<string, string> valuePair in dictionary)
+                        {
+                            foreach (KeyValuePair<string, Dictionary<string, bool>> checkbox in OriginalCheckBoxValuesDictionary)
+                            {
+                                var dictionary2 = checkbox.Value;
+                                foreach (KeyValuePair<string, bool> valuePairs in dictionary2)
+                                {
+                                    if (checkbox.Key == node.ID)
+                                    {
+                                        if (valuePair.Key == valuePairs.Key)
+                                        {
+
+                                            if (valuePairs.Value)
+                                            {
+                                                templates += "<tr><td>" + valuePair.Key + "</td><td>:</td><td>" + valuePair.Value + "</td></tr><tr>";
+                                            }
+
+                                            else
+                                            {
+                                                if (valuePair.Key == "ImageURL")
+                                                {
+                                                    OriginalTextBoxValuesDictionary[node.ID][valuePair.Key] = "";
+                                                    TextBoxDictionary[node.ID][valuePair.Key] = "";
+                                                    templates += "<tr><td>" + valuePair.Key + "</td><td>:</td><td></td></tr><tr>";
+                                                }
+                                                if (IsAdditionalInfo || IsUploader)
+                                                {
+                                                    if (valuePair.Key != "ImageURL")
+                                                    {
+                                                        templates += "<tr><td>" + valuePair.Key + "</td><td>:</td><td>" + valuePair.Value + "</td></tr><tr>";
+                                                    }
+                                                }
+                                            }
+
+                                        }
+                                    }
+
+                                }
+                            }
+                        }
+                    }
+                }
+                node.Tooltip = new DiagramTooltip() { Template = "<table" + " style=" + width + ">" + templates + "</table>", Position = Syncfusion.Blazor.Popups.Position.BottomCenter };
+                UpdateAnnotationStyle(node);
+
+                node.Constraints = NodeConstraints.Default | NodeConstraints.Tooltip;
+                node.Shape = new BasicShape() { Type = NodeShapes.Basic, Shape = NodeBasicShapes.Rectangle, CornerRadius = 10 };
+                Diagram.EndGroupAction();
+            }
+            else if (imagenode)
+            {
+                string templatesValue = "";
+                if (!applyClick && !IsUploader && !this.Parent.MenuBar.IsOpenClick)
+                {
+                    if (template == "template3")
+                    {
+                        node.Annotations = new DiagramObjectCollection<ShapeAnnotation>() { new ShapeAnnotation { Content = "Name", Style = new TextStyle() { Color = "black", Bold = true } } };
+                        templatesValue += "<tr><td>Name</td><td>:</td><td>Name</td></tr><tr>";
+                        if (TextBoxDictionary[node.ID].ContainsKey("Role"))
+                        {
+                            TextBoxDictionary[node.ID].Remove("Role");
+                            OriginalTextBoxValuesDictionary[node.ID].Remove("Role");
+                            CheckBoxDictionary[node.ID].Remove("Role");
+                            OriginalCheckBoxValuesDictionary[node.ID].Remove("Role");
+                                List<string> keys = DeleteDictionary[node.ID];
+                            keys.Remove("Role");
+                            DeleteDictionary[node.ID] = keys;
+                        }
+                    }
+                    else if (template == "template4")
+                    {
+                        node.Annotations = new DiagramObjectCollection<ShapeAnnotation>() { new ShapeAnnotation { Content = "Name", Style = new TextStyle() { Color = "black", FontSize = 10, Bold = true }, Offset = new DiagramPoint() { X = 0.5, Y = 0.4 } }, new ShapeAnnotation { Content = "Role", Style = new TextStyle() { Color = "black", FontSize = 8, Bold = false }, Offset = new DiagramPoint() { X = 0.5, Y = 0.7 } } };
+                        if (!TextBoxDictionary[node.ID].ContainsKey("Role"))
+                        {
+                            OriginalTextBoxValuesDictionary[node.ID].Add("Role", "Role");
+                            CheckBoxDictionary[node.ID]["Role"] = true;
+                            TextBoxDictionary[node.ID].Add("Role", "Role");
+                            List<string> keys = DeleteDictionary[node.ID];
+                            keys.Add("Role");
+                            DeleteDictionary[node.ID] = keys;
+                            OriginalCheckBoxValuesDictionary[node.ID]["Role"] = true;
+                        }
+
+                        templatesValue += "<tr><td>Name</td><td>:</td><td>Name</td></tr><tr>" + "<tr><td>Role</td><td>:</td><td>Role</td></tr><tr>";
+                    }
+                }
+                if (!(node.Shape is ImageShape))
+                {
+                    node.Shape = new ImageShape() { Type = NodeShapes.Image, ImageAlign = ImageAlignment.XMinYMin, Scale = DiagramScale.None, Source = "/assets/dbstyle/orgchart_images/blank-male.jpg" };
+                }
+                ImageShape imageShape = (node.Shape as ImageShape);
+                if (node.Data == null && !IsUploader && !this.Parent.MenuBar.IsOpenClick)
+                {
+                    if (TextBoxDictionary[node.ID].ContainsKey("ImageURL"))
+                    {
+                        templatesValue += "<tr><td>ImageURL</td><td>:</td><td>" + imageShape.Source + "</td></tr><tr>";
+                    }
+                    else
+                    {
+                        string imagePath = imageShape.Source;
+                        if (!this.IsCopy)
+                        {
+                            OriginalTextBoxValuesDictionary[node.ID].Add("ImageURL", imagePath);
+                            OriginalCheckBoxValuesDictionary[node.ID]["ImageURL"] = true;
+                        }
+                        TextBoxDictionary[node.ID].Add("ImageURL", imagePath);
+
+                        CheckBoxDictionary[node.ID]["ImageURL"] = true;
+                        templatesValue += "<tr><td>ImageURL</td><td>:</td><td>" + imageShape.Source + "</td></tr><tr>";
+                    }
+                }
+                if (!TextBoxDictionary[node.ID].ContainsKey("ImageURL") && !IsUploader)
+                {
+                    string imagePath = imageShape.Source;
+                    TextBoxDictionary[node.ID].Add("ImageURL", imagePath);
+                    CheckBoxDictionary[node.ID].Add("ImageURL", true);
+                    OriginalTextBoxValuesDictionary[node.ID].Add("ImageURL", imagePath);
+                    OriginalCheckBoxValuesDictionary[node.ID].Add("ImageURL", true);
+                }
+                if (applyClick || IsAdditionalInfo)
+                {
+                    templatesValue = "";
+                    foreach (KeyValuePair<string, Dictionary<string, string>> text in OriginalTextBoxValuesDictionary)
+                    {
+                        if (text.Key == node.ID)
+                        {
+                            var dictionary = text.Value;
+                            foreach (KeyValuePair<string, string> valuePair in dictionary)
+                            {
+                                foreach (KeyValuePair<string, Dictionary<string, bool>> checkbox in OriginalCheckBoxValuesDictionary)
+                                {
+                                    var dictionary2 = checkbox.Value;
+                                    foreach (KeyValuePair<string, bool> valuePairs in dictionary2)
+                                    {
+                                        if (checkbox.Key == node.ID)
+                                        {
+                                            if (valuePair.Key == valuePairs.Key)
+                                            {
+                                                if (valuePairs.Value)
+                                                {
+                                                    templatesValue += "<tr><td>" + valuePair.Key + "</td><td>:</td><td>" + valuePair.Value + "</td></tr><tr>";
+                                                }
+                                                else
+                                                {
+                                                    if (valuePair.Key == "ImageURL")
+                                                    {
+                                                        string url = imageShape.Source;
+                                                        OriginalTextBoxValuesDictionary[node.ID][valuePair.Key] = url;
+                                                        TextBoxDictionary[node.ID][valuePair.Key] = url;
+                                                        templatesValue += "<tr><td>" + valuePair.Key + "</td><td>:</td><td>" + url + "</td></tr><tr>";
+                                                    }
+                                                    if ((IsAdditionalInfo || IsUploader) && valuePair.Key != "ImageURL")
+                                                    {
+                                                        templatesValue += "<tr><td>" + valuePair.Key + "</td><td>:</td><td>" + valuePair.Value + "</td></tr><tr>";
+                                                    }
+                                                }
+                                            }
+                                        }
+
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                UpdateAnnotationStyle(node);
+                if (node.Data != null)
+                {
+                    (node.Data as OrgChartDetails).ImageURL = (node.Shape is ImageShape) ? (node.Shape as ImageShape).Source : "";
+                }
+                node.Tooltip = new DiagramTooltip() { Template = "<table" + " style=" + width + ">" + templatesValue + "</table>", Position = Syncfusion.Blazor.Popups.Position.BottomCenter };
+                node.Constraints = NodeConstraints.Default | NodeConstraints.Tooltip;
+
+            }
+            nodeBases.Add(node);
+            UpdateAnnotationPosition(node);
+        }
+        foreach (Connector connector in connectors)
+        {
+            nodeBases.Add(connector);
+        }
+
+        await Diagram.AddDiagramElements(nodeBases);
+        await Diagram.DoLayout();
+        nodess.Clear();
+        connectors.Clear();
+    }
+    /// <summary>
+    /// Performs an undo or redo operation on the diagram layout based on the isUndo flag.
+    /// </summary>
+    /// <param name="isUndo">Flag indicating whether the operation is an undo (true) or redo (false).</param>
+    public async Task UndoRedoLayout(Boolean isUndo)
+    {
+        SfDiagramComponent diagram = Parent.DiagramContent.Diagram;
+        if (isUndo)
+            diagram.Undo();
+        else
+        {
+            diagram.Redo();
+            await diagram.DoLayout();
+        }
+        if (diagram.SelectionSettings.Nodes.Count == 0)
+        {
+            UpdateSelectionForNode(diagram);
+        }
+    }
+    /// <summary>
+    /// Updates the selection for the root node in the diagram.
+    /// </summary>
+    /// <param name="diagram">The SfDiagramComponent to update the selection for.</param>
+    public void UpdateSelectionForNode(SfDiagramComponent diagram)
+    {
+        for (int i = 0; i < diagram.Nodes.Count; i++)
+        {
+            Node newSelection = diagram.Nodes[i];
+            if (newSelection.ID == "rootNode")
+                diagram.Select(new ObservableCollection<IDiagramObject>() { newSelection });
+        }
+
+    }
+    /// <summary>
+    /// Forces the component to re-render by invoking the StateHasChanged method.
+    /// </summary>
+    public void statehaschanged()
+    {
+        StateHasChanged();
+    }
+    /// <summary>
+    /// Handles the EditHandle method to show the dialog box and add property button.
+    /// </summary>
+    public void EditHandle()
+    {
+        dialogVisibility = true;
+        addPropertyButton = true;
+        StateHasChanged();
+    }
+    /// <summary>
+    /// Changes the organization chart pattern to "vertical-alternate" and updates the diagram accordingly.
+    /// </summary>
+    public async Task OrgChartPattern1Change()
+    {
+        SfDiagramComponent Diagram = Parent.DiagramContent.Diagram;
+        Diagram.BeginUpdate();
+        patternValue = "vertical-alternate";
+        SubTreeOrientation = Syncfusion.Blazor.Diagram.Orientation.Vertical;
+        SubTreeAlignment = SubTreeAlignmentType.Alternate;
+        await Diagram.EndUpdate();
+        await Diagram.DoLayout();
+    }
+    /// <summary>
+    /// Changes the organization chart pattern to "vertical-left" and updates the diagram accordingly.
+    /// </summary>
+    public async Task OrgChartPattern2Change()
+    {
+        SfDiagramComponent Diagram = Parent.DiagramContent.Diagram;
+        Diagram.BeginUpdate();
+        patternValue = "vertical-left";
+        SubTreeOrientation = Syncfusion.Blazor.Diagram.Orientation.Vertical;
+        SubTreeAlignment = SubTreeAlignmentType.Left;
+        await Diagram.EndUpdate();
+        await Diagram.DoLayout();
+    }
+    /// <summary>
+    /// Changes the organization chart pattern to "vertical-right" and updates the diagram accordingly.
+    /// </summary>
+    public async Task OrgChartPattern3Change()
+    {
+        SfDiagramComponent Diagram = Parent.DiagramContent.Diagram;
+        Diagram.BeginUpdate();
+        patternValue = "vertical-right";
+        SubTreeOrientation = Syncfusion.Blazor.Diagram.Orientation.Vertical;
+        SubTreeAlignment = SubTreeAlignmentType.Right;
+        await Diagram.EndUpdate();
+        await Diagram.DoLayout();
+    }
+    /// <summary>
+    /// Changes the organization chart pattern to "horizontal-center" and updates the diagram accordingly.
+    /// </summary>
+    public async Task OrgChartPattern4Change()
+    {
+        SfDiagramComponent Diagram = Parent.DiagramContent.Diagram;
+        Diagram.BeginUpdate();
+        patternValue = "horizontal-center";
+        SubTreeOrientation = Syncfusion.Blazor.Diagram.Orientation.Horizontal;
+        SubTreeAlignment = SubTreeAlignmentType.Center;
+        await Diagram.EndUpdate();
+        await Diagram.DoLayout();
+    }
+    /// <summary>
+    /// Changes the organization chart pattern to "horizontal-right" and updates the diagram accordingly.
+    /// </summary>
+    public async Task OrgChartPattern5Change()
+    {
+        SfDiagramComponent Diagram = Parent.DiagramContent.Diagram;
+        Diagram.BeginUpdate();
+        patternValue = "horizontal-right";
+        SubTreeOrientation = Syncfusion.Blazor.Diagram.Orientation.Horizontal;
+        SubTreeAlignment = SubTreeAlignmentType.Right;
+        await Diagram.EndUpdate();
+        await Diagram.DoLayout();
+    }
+    /// <summary>
+    /// Changes the organization chart pattern to "horizontal-left" and updates the diagram accordingly.
+    /// </summary>
+    public async Task OrgChartPattern6Change()
+    {
+        SfDiagramComponent Diagram = Parent.DiagramContent.Diagram;
+        Diagram.BeginUpdate();
+        patternValue = "horizontal-left";
+        SubTreeOrientation = Syncfusion.Blazor.Diagram.Orientation.Horizontal;
+        SubTreeAlignment = SubTreeAlignmentType.Left;
+        await Diagram.EndUpdate();
+        await Diagram.DoLayout();
+    }
+    /// <summary>
+    /// Changes the parent node of the selected node in the organization chart.
+    /// If the selected node has a parent node, it changes its parent to its grandparent, or removes the selected node if its parent has no other child.
+    /// </summary>
+    public async Task ChangeChildParent()
+    {
+        SfDiagramComponent diagram = Parent.DiagramContent.Diagram;
+        Node node = diagram.SelectionSettings.Nodes[0];
+        if (node.InEdges.Count > 0)
+        {
+            Connector connector = GetConnector(diagram.Connectors, node.InEdges[0]);
+            Node parentNode = GetNode(diagram.Nodes, connector.SourceID);
+            if (parentNode.InEdges.Count > 0)
+            {
+                Connector connector1 = GetConnector(diagram.Connectors, parentNode.InEdges[0]);
+                connector.SourceID = connector1.SourceID;
+            }
+            else
+            {
+                diagram.Connectors.Remove(connector);
+            }
+
+            diagram.Select(new ObservableCollection<IDiagramObject>() { node });
+
+        }
+        await diagram.DoLayout();
+    }
+    /// <summary>
+    /// Moves the selected node to the same level as its parent in the organization chart.
+    /// </summary>
+    public void ChildToSameLevel()
+    {
+        SfDiagramComponent diagram = Parent.DiagramContent.Diagram;
+        if (diagram.SelectionSettings.Nodes.Count > 0)
+        {
+            Node node = diagram.SelectionSettings.Nodes[0];
+            if (node.InEdges.Count > 0)
+            {
+                Connector connector = GetConnector(diagram.Connectors, node.InEdges[0]);
+                _=this.AddNode(connector.SourceID);
+            }
+        }
+    }
+    /// <summary>
+    /// Navigates the selection to the child node in the specified direction (Left, Right, Up, Down) in the organization chart.
+    /// If there is no child node in the specified direction, it selects the node that has the minimum distance in that direction.
+    /// </summary>
+    /// <param name="direction">The direction to navigate the selection (Left, Right, Up, Down).</param>
+    public void NavigateChild(string direction)
+    {
+        SfDiagramComponent diagram = Parent.DiagramContent.Diagram;
+        Node? node = null;
+        List<Node> sameLevelNodes = new List<Node>();
+        if (direction == "Left" || direction == "Right")
+        {
+            sameLevelNodes = GetSameLevelNodes();
+            int index = sameLevelNodes.IndexOf(diagram.SelectionSettings.Nodes[0]);
+            node = direction == "Left" ? sameLevelNodes[index == 0 ? 0 : index - 1] : sameLevelNodes[index == (sameLevelNodes.Count - 1) ? index : index + 1];
+        }
+        else
+        {
+            node = GetMinDistanceNode(diagram, direction);
+        }
+        if (node != null)
+        {
+            diagram.Select(new ObservableCollection<IDiagramObject>() { node });
+        }
+    }
+    /// <summary>
+    /// Gets the nodes at the same level as the selected node in the organization chart.
+    /// </summary>
+    /// <returns>A list of nodes at the same level as the selected node.</returns>
+    private List<Node> GetSameLevelNodes()
+    {
+        List<Node> sameLevelNodes = new List<Node>();
+        SfDiagramComponent diagram = Parent.DiagramContent.Diagram;
+        if (diagram.SelectionSettings.Nodes.Count > 0)
+        {
+            Node node = diagram.SelectionSettings.Nodes[0];
+            Connector connector = GetConnector(diagram.Connectors, node.InEdges[0]);
+            Node parentNode = GetNode(diagram.Nodes, connector.SourceID);
+            for (int i = 0; i < parentNode.OutEdges.Count; i++)
+            {
+                connector = GetConnector(diagram.Connectors, parentNode.OutEdges[i]);
+                Node childNode = GetNode(diagram.Nodes, connector.TargetID);
+                if (childNode != null)
+                {
+                    sameLevelNodes.Add(childNode);
+                }
+            }
+        }
+        return sameLevelNodes;
+    }
+    /// <summary>
+    /// Gets the node that has the minimum distance in the specified direction (Top, Bottom, Left, Right) from the selected node in the organization chart.
+    /// </summary>
+    /// <param name="diagram">The SfDiagramComponent instance representing the diagram.</param>
+    /// <param name="direction">The direction in which to find the minimum distance node (Top, Bottom, Left, Right).</param>
+    /// <returns>The node with the minimum distance in the specified direction from the selected node, if found; otherwise, null.</returns>
+    private Node GetMinDistanceNode(SfDiagramComponent diagram, string direction)
+    {
+        Node node = diagram.SelectionSettings.Nodes[0];
+        double? nodeWidth = (node.Width == null) ? node.MinWidth : node.Width;
+        DiagramRect parentBounds = new DiagramRect((node.OffsetX - (nodeWidth / 2)), node.OffsetY - (node.Height / 2), nodeWidth, node.Height);
+        Node? lastChildNode = null;
+        DiagramRect childNodeBounds = new DiagramRect();
+        DiagramRect LastchildNodeBounds = new DiagramRect();
+        double oldChildBoundsLeft = 0;
+        if (direction == "Top")
+        {
+            List<string> edges = node.InEdges;
+            if (edges.Count > 0)
+            {
+                Connector connector = GetConnector(diagram.Connectors, edges[0]);
+                Node parentNode = GetNode(diagram.Nodes, connector.SourceID);
+                List<Node> ChildNodes = new List<Node>();
+                for (int i = 0; i < parentNode.InEdges.Count; i++)
+                {
+                    connector = GetConnector(diagram.Connectors, parentNode.OutEdges[i]);
+                    Node childNode = GetNode(diagram.Nodes, connector.TargetID);
+                    if (childNode != null)
+                    {
+                        ChildNodes.Add(childNode);
+                    }
+                }
+                if (ChildNodes.Count > 0)
+                {
+                    for (int i = 0; i < ChildNodes.Count; i++)
+                    {
+                        double? childNodeWidth = (ChildNodes[i].Width == null) ? ChildNodes[i].MinWidth : ChildNodes[i].Width;
+                        childNodeBounds = new DiagramRect((ChildNodes[i].OffsetX - (childNodeWidth / 2)), ChildNodes[i].OffsetY - (ChildNodes[i].Height / 2), childNodeWidth, ChildNodes[i].Height);
+                        if (childNodeBounds.Top < parentBounds.Top && childNodeBounds.Left == parentBounds.Left)
+                        {
+                            lastChildNode = ChildNodes[i];
+                        }
+                    }
+                }
+                if (lastChildNode == null)
+                {
+                    lastChildNode = parentNode;
+                }
+
+            }
+        }
+        else
+        {
+            List<string> edges = node.OutEdges;
+            for (int i = 0; i < edges.Count; i++)
+            {
+                Connector connector = GetConnector(diagram.Connectors, edges[i]);
+                Node childNode = GetNode(diagram.Nodes, connector.TargetID);
+                if (childNode != null)
+                {
+                    double? childNodeWidth = (childNode.Width == null) ? childNode.MinWidth : childNode.Width;
+                    childNodeBounds = new DiagramRect((childNode.OffsetX - (childNodeWidth / 2)), childNode.OffsetY - (childNode.Height / 2), childNodeWidth, childNode.Height);
+                    if (parentBounds.Left >= childNodeBounds.Left && (childNodeBounds.Left >= oldChildBoundsLeft || oldChildBoundsLeft == 0))
+                    {
+                        if (lastChildNode != null)
+                        {
+                            double? lastChildNodeWidth = (lastChildNode.Width == null) ? lastChildNode.MinWidth : lastChildNode.Width;
+                            LastchildNodeBounds = new DiagramRect((lastChildNode.OffsetX - (lastChildNodeWidth / 2)), lastChildNode.OffsetY - (lastChildNode.Height / 2), lastChildNodeWidth, lastChildNode.Height);
+                            if (childNodeBounds.Top <= LastchildNodeBounds.Top)
+                            {
+                                lastChildNode = childNode;
+                            }
+                        }
+                        else
+                        {
+                            lastChildNode = childNode;
+                        }
+                    }
+                }
+                if (lastChildNode == null)
+                {
+                    lastChildNode = childNode;
+                }
+            }
+        }
+        return lastChildNode;
+    }
+    /// <summary>
+    /// Adds a new node as a child of the specified source node in the organization chart.
+    /// </summary>
+    /// <param name="sourceId">The ID of the source node to which the new node will be added as a child.</param>
+    public async Task AddNode(string sourceId)
+    {
+        IsAddNode = true;
+        SfDiagramComponent diagram = Parent.DiagramContent.Diagram;
+
+        if (diagram.SelectionSettings.Nodes.Count > 0)
+        {
+            Node SelectedNode = diagram.SelectionSettings.Nodes[0];
+            var ParentNode = GetNode(diagram.Nodes, sourceId);
+            var cloneNode = SelectedNode.Clone();
+            diagram.BeginUpdate();
+            diagram.StartGroupAction();
+            Node node = new Node()
+            {
+            };
+            node = cloneNode as Node;
+            node.ID = "Node" + Parent.DiagramContent.RandomId();
+            var textboxValues = new Dictionary<string, string>();
+            var checkboxValues = new Dictionary<string, bool>();
+            var originalTextboxValues = new Dictionary<string, string>();
+            var originalCheckboxValues = new Dictionary<string, bool>();
+            var annotationList = new List<string>();
+            string tooltip = "";
+            foreach (KeyValuePair<string, string> textValues in OriginalTextBoxValuesDictionary[ParentNode.ID])
+            {
+                string text = textValues.Key;
+
+
+                foreach (KeyValuePair<string, bool> checkbox in OriginalCheckBoxValuesDictionary[ParentNode.ID])
+                {
+
+                    if (textValues.Key == checkbox.Key)
+                    {
+                        originalCheckboxValues.Add(checkbox.Key, checkbox.Value);
+                        if (textValues.Key == "ImageURL")
+                        {
+                            if (node.Shape is ImageShape)
+                            {
+                                text = (node.Shape as ImageShape).Source;
+                            }
+                        }
+                        else
+                        {
+                            if (Parent.MenuBar.IsOpenClick)
+                            {
+                                text = textValues.Key;
+                            }
+                        }
+                        if (!checkbox.Value && !IsUploader)
+                        {
+
+                            text = "";
+                        }
+
+                        originalTextboxValues.Add(textValues.Key, text);
+                        if (IsUploader)
+                        {
+                            if (node.Data != null)
+                            {
+                                node.Data = null;
+                            }
+                            if (checkbox.Value)
+                            {
+
+                                if (textValues.Key != "ImageURL")
+                                {
+                                    annotationList.Add(checkbox.Key);
+                                }
+                            }
+                            tooltip += "<tr><td>" + textValues.Key + "</td><td>:</td><td>" + text + "</td></tr><tr>";
+                        }
+                        if (checkbox.Value && !IsUploader)
+                        {
+                            if (textValues.Key != "ImageURL")
+                            {
+                                annotationList.Add(checkbox.Key);
+                            }
+                            tooltip += "<tr><td>" + textValues.Key + "</td><td>:</td><td>" + text + "</td></tr><tr>";
+                        }
+
+                    }
+
+                }
+            }
+            foreach (KeyValuePair<string, string> textValues in TextBoxDictionary[ParentNode.ID])
+            {
+                string text = textValues.Key;
+
+
+                foreach (KeyValuePair<string, bool> checkbox in CheckBoxDictionary[ParentNode.ID])
+                {
+
+                    if (textValues.Key == checkbox.Key)
+                    {
+                        checkboxValues.Add(checkbox.Key, checkbox.Value);
+                        if (!checkbox.Value && !IsUploader)
+                        {
+
+                            text = "";
+                        }
+                        if (checkbox.Value)
+                        {
+                            if (textValues.Key == "ImageURL")
+                            {
+                                if (node.Shape is ImageShape)
+                                {
+                                    text = (node.Shape as ImageShape).Source;
+                                }
+                            }
+                        }
+                        else
+                        {
+                            if (textValues.Key == "ImageURL")
+                            {
+                                if (node.Shape is ImageShape)
+                                {
+                                    text = (node.Shape as ImageShape).Source;
+                                }
+                            }
+                            else
+                            {
+                                if (Parent.MenuBar.IsOpenClick)
+                                {
+                                    text = textValues.Key;
+                                }
+                            }
+                        }
+                        textboxValues.Add(textValues.Key, text);
+
+                    }
+
+                }
+
+            }
+
+            TextBoxDictionary.Add(node.ID, textboxValues);
+            CheckBoxDictionary.Add(node.ID, checkboxValues);
+            OriginalCheckBoxValuesDictionary.Add(node.ID, originalCheckboxValues);
+            OriginalTextBoxValuesDictionary.Add(node.ID, originalTextboxValues);
+            List<string> deleteInformation = new List<string>();
+            Dictionary<string, string> propertyNames = TextBoxDictionary[ParentNode.ID];
+            foreach (KeyValuePair<string, string> keyValuePair in propertyNames)
+            {
+                deleteInformation.Add(keyValuePair.Key);
+            }
+            DeleteDictionary.Add(node.ID, deleteInformation);
+            bool apply = false;
+            if (ApplyDictionary.ContainsKey(ParentNode.ID))
+            {
+                apply = ApplyDictionary[ParentNode.ID];
+            }
+            else
+            {
+                if (IsUploader || Parent.MenuBar.IsOpenClick)
+                {
+                    apply = true;
+                }
+                else
+                {
+                    apply = false;
+                }
+            }
+            ApplyDictionary.Add(node.ID, apply);
+            node.Constraints |= NodeConstraints.AllowDrop;
+            if (ParentNode.Shape.Type == NodeShapes.Image)
+            {
+                node.Shape = new ImageShape() { Type = NodeShapes.Image, Source = (ParentNode.Shape as ImageShape).Source, ImageAlign = ImageAlignment.XMinYMin, Scale = DiagramScale.Meet };
+            }
+            else
+            {
+                node.Shape = new BasicShape() { Type = NodeShapes.Basic, Shape = NodeBasicShapes.Rectangle, CornerRadius = 10 };
+            }
+
+            node.Constraints = NodeConstraints.Default | NodeConstraints.Tooltip;
+            string width = "width: 100%;";
+            node.Tooltip = new DiagramTooltip() { Template = "<table" + " style=" + width + ">" + tooltip + "</table>", Position = Syncfusion.Blazor.Popups.Position.BottomCenter };
+            Connector connector = new Connector()
+                {
+                    ID = "Connector" + Parent.DiagramContent.RandomId(),
+                    SourceID = sourceId,
+                    TargetID = node.ID,
+                    Type = ConnectorSegmentType.Orthogonal,
+                    Style = new ShapeStyle() { StrokeColor = "black", StrokeWidth = 2 }
+                };
+
+            node.Annotations = new DiagramObjectCollection<ShapeAnnotation>();
+            foreach (string content in annotationList)
+            {
+                ShapeAnnotation annotation = new ShapeAnnotation()
+                    {
+                        Content = content,
+                        Constraints = AnnotationConstraints.ReadOnly,
+                    };
+                node.Annotations.Add(annotation);
+            }
+            UpdateAnnotationStyle(node);
+            UpdateAnnotationPosition(node);
+            connector.Constraints = ConnectorConstraints.PointerEvents | ConnectorConstraints.Select | ConnectorConstraints.Delete;
+            await diagram.AddDiagramElements(new DiagramObjectCollection<NodeBase>() { node, connector });
+
+            var node1 = GetNode(diagram.Nodes, node.ID);
+            diagram.EndGroupAction();
+            await diagram.DoLayout();
+            diagram.Select(new ObservableCollection<IDiagramObject>() { node1 });
+            await diagram.EndUpdate();
+            IsAddNode = false;
+        }
+
+    }
+
+
+    private void UpdateNodeDetails(Node parentNode,Node node)
+    {
+        var data = parentNode.Data as OrgChartDetails;
+        if (data != null) {
+            OrgChartDetails orgChartDetails = new OrgChartDetails();
+            orgChartDetails.Name="Name";
+            orgChartDetails.Role = "Role";
+            orgChartDetails.EmployeeID="EmployeeID";
+            orgChartDetails.Email="Email";
+            orgChartDetails.Phone="Phone";
+            orgChartDetails.SupervisorID = "SupervisorID";
+            orgChartDetails.ImageURL="ImageURL";
+            orgChartDetails.SupervisorName = "SupervisorName";
+            orgChartDetails.Department="Department";
+            orgChartDetails.Location="Location";
+            node.Data= orgChartDetails;
+        }
+    }
+    /// <summary>
+    /// Removes the selected node and its children from the organization chart layout.
+    /// </summary>
+    public async Task RemoveChildNode()
+    {
+        SfDiagramComponent diagram = Parent.DiagramContent.Diagram;
+        if (diagram.SelectionSettings.Nodes.Count > 0)
+        {
+            diagram.BeginUpdate();
+            diagram.StartGroupAction();
+            await RemoveSubChild(diagram.SelectionSettings.Nodes[0], diagram);
+            await diagram.DoLayout();
+            diagram.EndGroupAction();
+            await diagram.EndUpdate();
+        }
+    }
+
+    /// <summary>
+    /// Recursively removes the children of the specified node from the organization chart layout.
+    /// </summary>
+    /// <param name="node">The node for which to remove the children.</param>
+    /// <param name="diagram">The SfDiagramComponent instance representing the diagram.</param>
+    public async Task RemoveSubChild(Node node, SfDiagramComponent diagram)
+    {
+        for (int i = node.OutEdges.Count - 1; i >= 0; i--)
+        {
+            Connector connector = GetConnector(diagram.Connectors, node.OutEdges[i]);
+            Node childNode = GetNode(diagram.Nodes, connector.TargetID);
+            if (childNode != null && childNode.OutEdges.Count > 0)
+                await RemoveSubChild(childNode, diagram);
+            else
+                diagram.Nodes.Remove(childNode);
+        }
+        for (int j = node.InEdges.Count - 1; j >= 0; j--)
+        {
+            Connector connector = GetConnector(diagram.Connectors, node.InEdges[j]);
+            Node childNode = GetNode(diagram.Nodes, connector.SourceID);
+            var index = childNode.OutEdges.IndexOf(connector.ID);
+            if (childNode.OutEdges.Count > 1 && index == 0)
+                index = childNode.OutEdges.Count;
+            if (index > 0)
+            {
+                var node1 = childNode.OutEdges[index - 1];
+                Connector connector1 = diagram.GetObject(node1) as Connector;
+                Node node2 = GetNode(diagram.Nodes, connector1.TargetID);
+                diagram.Select(new ObservableCollection<IDiagramObject>() { node2 });
+            }
+            else
+                diagram.Select(new ObservableCollection<IDiagramObject>() { childNode });
+        }
+        if (node.ID != "rootNode")
+            diagram.Nodes.Remove(node);
+        StateHasChanged();
+
+    }
+    /// <summary>
+    /// Gets the node with the specified name from the diagram nodes collection.
+    /// </summary>
+    /// <param name="diagramNodes">The collection of diagram nodes.</param>
+    /// <param name="name">The ID of the node to retrieve.</param>
+    /// <returns>The node with the specified name, if found; otherwise, null.</returns>
+    private Node GetNode(DiagramObjectCollection<Node> diagramNodes, string name)
+    {
+        for (int i = 0; i < diagramNodes.Count; i++)
+        {
+            if (diagramNodes[i].ID == name)
+            {
+                return diagramNodes[i];
+            }
+        }
+        return null;
+    }
+    /// <summary>
+    /// Gets the connector with the specified name from the diagram connectors collection.
+    /// </summary>
+    /// <param name="diagramConnectors">The collection of diagram connectors.</param>
+    /// <param name="name">The ID of the connector to retrieve.</param>
+    /// <returns>The connector with the specified name, if found; otherwise, null.</returns>
+    private Connector GetConnector(DiagramObjectCollection<Connector> diagramConnectors, string name)
+    {
+        for (int i = 0; i < diagramConnectors.Count; i++)
+        {
+            if (diagramConnectors[i].ID == name)
+            {
+                return diagramConnectors[i];
+            }
+        }
+        return null;
+    }
+}
