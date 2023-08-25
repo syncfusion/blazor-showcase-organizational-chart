@@ -17,14 +17,11 @@
 	<ItemGroup>
 		<PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="6.0.6" />
 		<PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="6.0.6" PrivateAssets="all" />
+		<PackageReference Include="Syncfusion.Blazor" Version="22.2.10" />
 	</ItemGroup>
 
 	<ItemGroup>
 		<PackageReference Include="System.Net.Http.Json" Version="5.0.0" />
 		<PackageReference Include="Markdig" Version="0.23.0" />
-	</ItemGroup>
-
-	<ItemGroup>
-	  <ProjectReference Include="..\..\..\January\Source\Syncfusion.Blazor\Syncfusion.Blazor.csproj" />
 	</ItemGroup>
 </Project>

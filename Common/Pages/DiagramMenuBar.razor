@@ -284,18 +284,6 @@
         this.ItemSelection();
     }
     /// <summary>
-    /// Represents a context menu item for a menu bar option.
-    /// </summary>
-    public class ContextMenuItemModel
-    {
-        public List<ContextMenuItemModel> Items { get; set; }
-        public string Text { get; set; }
-        public string Id { get; set; }
-        public string IconCss { get; set; }
-        public Boolean Separator { get; set; }
-        public Boolean Disabled { get; set; }
-    }
-    /// <summary>
     /// Gets the list of Edit menu items within the menu bar.
     /// </summary>
     internal List<ContextMenuItemModel> EditMenuItems = new List<ContextMenuItemModel>
