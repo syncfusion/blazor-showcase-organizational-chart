@@ -28,5 +28,4 @@
   <ItemGroup>
     <ProjectReference Include="..\Common\BlazorServerCommon_NET6.csproj" />
   </ItemGroup>
-
 </Project>
