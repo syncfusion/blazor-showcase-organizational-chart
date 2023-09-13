@@ -287,11 +287,9 @@ namespace OrganizationalChart
         {
             int index = Parent.MenuBar.WindowMenuItems.FindIndex(item => item.Text == "Show Properties");
             Parent.MenuBar.WindowMenuItems[index].IconCss = Parent.MenuBar.WindowMenuItems[index].IconCss == "sf-icon-Selection" ? "sf-icon-Remove" : "sf-icon-Selection";
-            //HideButtonBackground = (Parent.MenuBar.WindowMenuItems[index].IconCss == "sf-icon-Selection") ? "#0078d4" : "rgb(227, 227, 227)";
-            //HideButtonCss = (Parent.MenuBar.WindowMenuItems[index].IconCss == "sf-icon-Selection") ? "db-toolbar-hide-btn tb-property-open" : "db-toolbar-hide-btn tb-property-close";
             await this.HideElements("hide-properties", this.Parent.MenuBar.OpenClick);
             {
-                //await Task.Delay(800);
+                await Task.Delay(800);
                 object bounds = await jsRuntime.InvokeAsync<object>("getViewportBounds").ConfigureAwait(true);
                 if (bounds != null)
                 {
@@ -313,6 +311,8 @@ namespace OrganizationalChart
                 await Parent.DiagramContent.Diagram.DoLayout();
             }
             Parent.MenuBar.StateChanged();
+            Parent.DiagramContent.StateChanged();
+            Parent.OrgChartPropertyPanel.statehaschanged();
         }
         /// <summary>
         /// Removes specific CSS class elements from the toolbar class name.
