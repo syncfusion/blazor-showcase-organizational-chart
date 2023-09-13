@@ -7,8 +7,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OrganizationalChart", "Orga
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BlazorWasmCommon_NET6", "..\Common\BlazorWasmCommon_NET6.csproj", "{00AB184E-53E4-4CF4-B486-5BBEA89A7457}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Syncfusion.Blazor", "..\..\..\January\Source\Syncfusion.Blazor\Syncfusion.Blazor.csproj", "{83D8D2D8-F679-4C04-A0B5-A9B50D56C2FC}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -23,10 +21,6 @@ Global
 		{00AB184E-53E4-4CF4-B486-5BBEA89A7457}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{00AB184E-53E4-4CF4-B486-5BBEA89A7457}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{00AB184E-53E4-4CF4-B486-5BBEA89A7457}.Release|Any CPU.Build.0 = Release|Any CPU
-		{83D8D2D8-F679-4C04-A0B5-A9B50D56C2FC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{83D8D2D8-F679-4C04-A0B5-A9B50D56C2FC}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{83D8D2D8-F679-4C04-A0B5-A9B50D56C2FC}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{83D8D2D8-F679-4C04-A0B5-A9B50D56C2FC}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
