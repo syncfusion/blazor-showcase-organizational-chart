@@ -24,9 +24,4 @@
   <ItemGroup>
     <Content Remove="NuGet.config" />
   </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\Common\BlazorServerCommon_NET6.csproj" />
-  </ItemGroup>
-
 </Project>
