@@ -1512,7 +1512,7 @@
     /// <param name="args">The event arguments containing information about the uploaded files.</param>
     public async Task OnUploadSuccess(SuccessEventArgs args)
     {
-        files = await uploadObj.GetFilesData();
+        files = await uploadObj.GetFilesDataAsync();
 
         fileCount = files.Count;
         if (args.Operation != "remove")
@@ -1772,7 +1772,7 @@
             DataSourceDictionaryUpdate();
             await supervisorDropdownList.RefreshDataAsync();
             await employeeDropdownList.RefreshDataAsync();
-            files = await uploadObj.GetFilesData();
+            files = await uploadObj.GetFilesDataAsync();
 
             fileCount = files.Count;
         }
