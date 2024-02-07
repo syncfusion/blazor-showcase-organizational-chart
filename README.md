@@ -1,6 +1,6 @@
-# Essential Studio for Blazor - Diagram Builder
+# Essential Studio for Blazor - Organizational chart
 
-The Blazor diagram builder application is used to create diagrams such as FlowChart and MindMap diagrams. In the diagram builder application, all support diagrams, such as Print, Export, and Drawing Tool support, are available in the Diagram Builder application. You can interact with the diagram or create your own using shapes.
+An organizational chart visually outlines an organization's hierarchy and relationships. It clarifies reporting lines and departmental roles, fostering transparency and collaboration. This chart aids in understanding the structure and facilitates effective communication within the organization.
 
 ## Deployment
 
@@ -19,6 +19,7 @@ The samples require the following requirements to run.
 
 ## Demo
 
-### <a href="https://blazor.syncfusion.com/showcase/diagrambuilder/" target="_blank">https://blazor.syncfusion.com/showcase/diagrambuilder/</a>
+### Server - <a href="https://blazor.syncfusion.com/showcase/organization-chart/" target="_blank">https://blazor.syncfusion.com/showcase/organization-chart/</a>
+### WebAssembly - <a href="https://blazor.syncfusion.com/showcase/wasm/organization-chart/" target="_blank">https://blazor.syncfusion.com/showcase/wasm/organization-chart/</a>
 
 Check all the showcase samples from <a href="https://blazor.syncfusion.com" target="_blank">here</a>.
