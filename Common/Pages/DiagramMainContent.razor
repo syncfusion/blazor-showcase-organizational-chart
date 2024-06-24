@@ -12,17 +12,52 @@
                 <BackgroundStyle @bind-Background="@DiagramBgColor"></BackgroundStyle>
                 <PageMargin @bind-Left="@marginLeft" @bind-Top="@marginRight"></PageMargin>
             </PageSettings>
-                <DiagramHistoryManager HistoryAdding="@OnHistoryAdding"/>
+            <DiagramHistoryManager HistoryAdding="@OnHistoryAdding" />
             <SnapSettings @bind-Constraints="@SnapConstraint">
                 <HorizontalGridLines LineIntervals="@SnapIntervals" LineColor="@Hlinecolor"></HorizontalGridLines>
                 <VerticalGridLines LineIntervals="@SnapIntervals" LineColor="@Hlinecolor"></VerticalGridLines>
             </SnapSettings>
             <ScrollSettings @bind-ScrollLimit="@scrollLimit" @bind-CurrentZoom="@CurrentZoom" @bind-MaxZoom="@maxZoom" @bind-MinZoom="@minZoom"></ScrollSettings>
-                <CommandManager @bind-Commands="@commands" Execute="@ExecuteCommand" CanExecute="@CanExecute" />
-                <Layout Type="LayoutType.OrganizationalChart" @bind-HorizontalSpacing="@HorizontalSpacing" @bind-VerticalSpacing="@VerticalSpacing" @bind-HorizontalAlignment="@horizontalAlignment" @bind-VerticalAlignment="@verticalAlignment" GetLayoutInfo="@getLayoutInfo">
-                       <LayoutMargin Left="50" Top="50"></LayoutMargin>
-                </Layout>
-                
+            <CommandManager @bind-Commands="@commands" Execute="@ExecuteCommand" CanExecute="@CanExecute" />
+            <Layout Type="LayoutType.OrganizationalChart" @bind-HorizontalSpacing="@HorizontalSpacing" @bind-VerticalSpacing="@VerticalSpacing" @bind-HorizontalAlignment="@horizontalAlignment" @bind-VerticalAlignment="@verticalAlignment" GetLayoutInfo="@getLayoutInfo">
+                <LayoutMargin Left="50" Top="50"></LayoutMargin>
+            </Layout>
+            <DiagramTemplates>
+                <TooltipTemplate>
+                    @{
+                        if (context is Node node)
+                        {
+                            OrgChartPropertyContainer orgChartPropertyContainer = Parent.OrgChartPropertyPanel;
+                            Dictionary<string, string> tooltipContent = new Dictionary<string, string>();
+                            if (orgChartPropertyContainer.OriginalCheckBoxValuesDictionary.ContainsKey(node.ID) && orgChartPropertyContainer.OriginalTextBoxValuesDictionary.ContainsKey(node.ID))
+                            {
+                                var checkedPropoerty = orgChartPropertyContainer.OriginalCheckBoxValuesDictionary[node.ID];
+                                var valuePropoerty = orgChartPropertyContainer.OriginalTextBoxValuesDictionary[node.ID];
+                                foreach (var key in checkedPropoerty.Keys)
+                                {
+                                    if (valuePropoerty.ContainsKey(key) && checkedPropoerty[key])
+                                    {
+                                        tooltipContent.Add(key, valuePropoerty[key]);
+                                    }
+
+                                }
+                            }
+                            if(tooltipContent.Count > 0)
+                            {
+                                <table style="width:100%">
+                                    @foreach(var item in tooltipContent)
+                                    {
+                                        <tr>
+                                            <td>@item.Key</td><td>:</td><td>@item.Value</td>
+                                        </tr>
+                                    }
+                                </table>
+                            }
+                        }
+                    }
+                </TooltipTemplate>
+            </DiagramTemplates>
+
         </SfDiagramComponent>
     </div>
 </div>
@@ -217,11 +252,11 @@
     public void InitializeDiagramModel()
     {
         Node node = new Node()
-            {
-                Width = 150,
-                Height = 50,
-                ID = "rootNode",
-                Annotations = new DiagramObjectCollection<ShapeAnnotation>()
+        {
+            Width = 150,
+            Height = 50,
+            ID = "rootNode",
+            Annotations = new DiagramObjectCollection<ShapeAnnotation>()
             {
                 new ShapeAnnotation()
                 {
@@ -230,61 +265,61 @@
                     Style=new TextStyle(){Bold=true,FontSize=10}
                 }
             },
-                Style = new ShapeStyle()
-                {
-                    Fill = "#C4F2E8",
-                    StrokeWidth = 2,
-                    StrokeColor = "#8BC1B7",
-                },
-                Shape = new BasicShape() { Shape = NodeBasicShapes.Rectangle, CornerRadius = 10, Type = NodeShapes.Basic },
-            };
+            Style = new ShapeStyle()
+            {
+                Fill = "#C4F2E8",
+                StrokeWidth = 2,
+                StrokeColor = "#8BC1B7",
+            },
+            Shape = new BasicShape() { Shape = NodeBasicShapes.Rectangle, CornerRadius = 10, Type = NodeShapes.Basic },
+        };
         UserHandle OrgAddHandle = new UserHandle()
-            {
-                Name = "OrgAddHandle",
-                BackgroundColor = "#7d7d7d",
-                Size = 23,
-                PathData = "M 30.05 15.03 L 30.05 30.05 L 15.02 30.05 L 15.02 39.9 L 30.05 39.9 L 30.05 54.93 L 39.9 54.93 L 39.9 39.9 L 54.93 39.9 L 54.93 30.05 L 39.9 30.05 L 39.9 15.03 z",
-                Visible = true,
-                Displacement = 10,
-                Offset = 0,
-                Side = Direction.Left,
+        {
+            Name = "OrgAddHandle",
+            BackgroundColor = "#7d7d7d",
+            Size = 23,
+            PathData = "M 30.05 15.03 L 30.05 30.05 L 15.02 30.05 L 15.02 39.9 L 30.05 39.9 L 30.05 54.93 L 39.9 54.93 L 39.9 39.9 L 54.93 39.9 L 54.93 30.05 L 39.9 30.05 L 39.9 15.03 z",
+            Visible = true,
+            Displacement = 10,
+            Offset = 0,
+            Side = Direction.Left,
 
-            };
+        };
         UserHandle OrgRemoveHandle = new UserHandle()
-            {
-                Name = "OrgRemoveHandle",
-                BackgroundColor = "#7d7d7d",
-                Size = 23,
-                PathData = "M 7.04 22.13 L 92.95 22.13 L 92.95 88.8 C 92.95 91.92 91.55 94.58 88.76 96.74 C 85.97 98.91 82.55 100 78.52 100 L 21.48 100 C 17.45 100 14.03 98.91 11.24 96.74 C 8.45 94.58 7.04 91.92 7.04 88.8 z M 32.22 0 L 67.78 0 L 75.17 5.47 L 100 5.47 L 100 16.67 L 0 16.67 L 0 5.47 L 24.83 5.47 z",
-                Visible = true,
-                Displacement = 10,
-                Offset = 1,
-                Side = Direction.Right,
+        {
+            Name = "OrgRemoveHandle",
+            BackgroundColor = "#7d7d7d",
+            Size = 23,
+            PathData = "M 7.04 22.13 L 92.95 22.13 L 92.95 88.8 C 92.95 91.92 91.55 94.58 88.76 96.74 C 85.97 98.91 82.55 100 78.52 100 L 21.48 100 C 17.45 100 14.03 98.91 11.24 96.74 C 8.45 94.58 7.04 91.92 7.04 88.8 z M 32.22 0 L 67.78 0 L 75.17 5.47 L 100 5.47 L 100 16.67 L 0 16.67 L 0 5.47 L 24.83 5.47 z",
+            Visible = true,
+            Displacement = 10,
+            Offset = 1,
+            Side = Direction.Right,
 
-            };
+        };
         UserHandle OrgEditHandle = new UserHandle()
-            {
-                Name = "OrgEditHandle",
-                BackgroundColor = "#7d7d7d",
-                Size = 23,
-                PathData = "M 42.65 30.41 L 67.5 53.99 L 41.2 78.73 C 39.41 80.42 37.34 81.27 34.99 81.27 C 32.65 81.27 30.57 80.49 28.78 78.93 L 25.05 82.44 L 0 82.44 L 16.36 67.05 C 14.57 65.36 13.67 63.41 13.67 61.2 C 13.67 58.99 14.57 56.98 16.36 55.16 z M 78.42 25.49 C 78.57 0 78.73 0.01 78.88 0.01 C 81.09 -0.12 83.09 0.66 84.88 2.35 L 97.52 14.04 C 99.17 15.86 100 17.87 100 20.09 C 100 22.29 99.17 24.24 97.52 25.93 L 71.84 50.09 L 46.79 26.51 L 72.47 2.35 C 74.15 0.77 76.13 -0.02 78.42 25.49 z",
-                Visible = true,
-                Displacement = 10,
-                Offset = 0,
-                Side = Direction.Right,
+        {
+            Name = "OrgEditHandle",
+            BackgroundColor = "#7d7d7d",
+            Size = 23,
+            PathData = "M 42.65 30.41 L 67.5 53.99 L 41.2 78.73 C 39.41 80.42 37.34 81.27 34.99 81.27 C 32.65 81.27 30.57 80.49 28.78 78.93 L 25.05 82.44 L 0 82.44 L 16.36 67.05 C 14.57 65.36 13.67 63.41 13.67 61.2 C 13.67 58.99 14.57 56.98 16.36 55.16 z M 78.42 25.49 C 78.57 0 78.73 0.01 78.88 0.01 C 81.09 -0.12 83.09 0.66 84.88 2.35 L 97.52 14.04 C 99.17 15.86 100 17.87 100 20.09 C 100 22.29 99.17 24.24 97.52 25.93 L 71.84 50.09 L 46.79 26.51 L 72.47 2.35 C 74.15 0.77 76.13 -0.02 78.42 25.49 z",
+            Visible = true,
+            Displacement = 10,
+            Offset = 0,
+            Side = Direction.Right,
 
-            };
+        };
         //Add user handle to the collection.
         UserHandles = new DiagramObjectCollection<UserHandle>()
         {
             OrgAddHandle,OrgEditHandle,OrgRemoveHandle
         };
         SelectedModel = new DiagramSelectionSettings()
-            {
-                Constraints = SelectorConstraints.All & ~(SelectorConstraints.Rotate | SelectorConstraints.ResizeAll),
+        {
+            Constraints = SelectorConstraints.All & ~(SelectorConstraints.Rotate | SelectorConstraints.ResizeAll),
 
-                UserHandles = this.UserHandles
-            };
+            UserHandles = this.UserHandles
+        };
         commands = new DiagramObjectCollection<KeyboardCommand>()
         {
 
@@ -424,7 +459,6 @@
             {
                 if ((node.AdditionalInfo != null && node.AdditionalInfo.Count > 0 && !orgChartPropertyContainer.IsCopy))
                 {
-                    string tooltip = "";
                     orgChartPropertyContainer.TextBoxDictionary.Remove(node.ID);
                     orgChartPropertyContainer.CheckBoxDictionary.Remove(node.ID);
                     orgChartPropertyContainer.OriginalTextBoxValuesDictionary.Remove(node.ID);
@@ -457,10 +491,6 @@
                                 originalCheckBoxValues.Add(keyValuePair.Key, textcheckbox.Key);
                                 checkBoxValues.Add(keyValuePair.Key, textcheckbox.Key);
                                 var isChecked = textcheckbox.Key;
-                                if (node.Data == null && isChecked)
-                                {
-                                    tooltip += "<tr><td>" + keyValuePair.Key + "</td><td>:</td><td>" + key + "</td></tr><tr>";
-                                }
                                 deleteInformation.Add(keyValuePair.Key);
                             }
                         }
@@ -489,20 +519,7 @@
                         orgChartPropertyContainer.IsAdditionalInfo = true;
 
                     }
-                    if (node.Data != null)
-                    {
-                        OrgChartDetails orgChartDetails =JsonSerializer.Deserialize<OrgChartDetails>(node.Data.ToString());
-                        node.Data = orgChartDetails;
-                        var data = node.Data as OrgChartDetails;
-                        string image=(node.Shape is ImageShape)?(node.Shape as ImageShape).Source:"";
-                        node.Tooltip = new DiagramTooltip() { Template = "<table" + " style=" + width + "><tr><td>Name</td><td>:</td><td>" + data.Name + "</td></tr><tr><td>Role</td><td>:</td><td>" + data.Role + "</td></tr><tr><td>Email</td><td>:</td><td>" + data.Email + "</td></tr><tr><td>Department</td><td>:</td><td>" + data.Department + "</td></tr><tr><td>EmployeeID</td><td>:</td><td>" + data.EmployeeID + "</td></tr><tr><td>SupervisorID</td><td>:</td><td>" + data.SupervisorID + "</td></tr><tr><td>SupervisorName</td><td>:</td><td>" + data.SupervisorName + "</td></tr><tr><td>Location</td><td>:</td><td>" + data.Location + "</td></tr><tr><td>Phone</td><td>:</td><td>" + data.Phone + "</td></tr><tr><td>ImageURL</td><td>:</td><td>" + image + "</td></tr></table>", Position = Syncfusion.Blazor.Popups.Position.BottomCenter };
-                    }
-                    else
-                    {
-                        node.Tooltip = new DiagramTooltip() { Template = "<table" + " style=" + width + ">" + tooltip + "</table>", Position = Syncfusion.Blazor.Popups.Position.BottomCenter };
-                    }
                 }
-
             }
 
             if (node.Data == null && node.AdditionalInfo != null && node.AdditionalInfo.Count == 0)
@@ -510,7 +527,6 @@
 
                 if (!orgChartPropertyContainer.TextBoxDictionary.ContainsKey(node.ID) && !orgChartPropertyContainer.CheckBoxDictionary.ContainsKey(node.ID))
                 {
-                    string tooltipValue = "";
                     orgChartPropertyContainer.ApplyDictionary.Add(node.ID, false);
                     Dictionary<string, string> textBoxValues = new Dictionary<string, string>();
                     Dictionary<string, bool> checkBoxValues = new Dictionary<string, bool>();
@@ -522,7 +538,6 @@
                     editUserHandlePropertyPanelDetails.PropertyValue = "Name";
                     editUserHandlePropertyPanelDetails.IsChecked = true;
 
-                    tooltipValue += "<tr><td>" + editUserHandlePropertyPanelDetails.PropertyName + "</td><td>:</td><td>" + editUserHandlePropertyPanelDetails.PropertyValue + "</td></tr><tr>";
                     deleteInformation.Add(editUserHandlePropertyPanelDetails.PropertyName);
                     textBoxValues.Add(editUserHandlePropertyPanelDetails.PropertyName, editUserHandlePropertyPanelDetails.PropertyValue);
                     checkBoxValues.Add(editUserHandlePropertyPanelDetails.PropertyName, editUserHandlePropertyPanelDetails.IsChecked);
@@ -533,7 +548,6 @@
                         editUserHandlePropertyPanelDetails.PropertyName = "Role";
                         editUserHandlePropertyPanelDetails.PropertyValue = "Role";
                         editUserHandlePropertyPanelDetails.IsChecked = true;
-                        tooltipValue += "<tr><td>" + editUserHandlePropertyPanelDetails.PropertyName + "</td><td>:</td><td>" + editUserHandlePropertyPanelDetails.PropertyValue + "</td></tr><tr>";
                         deleteInformation.Add(editUserHandlePropertyPanelDetails.PropertyName);
                         textBoxValues.Add(editUserHandlePropertyPanelDetails.PropertyName, editUserHandlePropertyPanelDetails.PropertyValue);
                         checkBoxValues.Add(editUserHandlePropertyPanelDetails.PropertyName, editUserHandlePropertyPanelDetails.IsChecked);
@@ -555,7 +569,6 @@
                         editUserHandlePropertyPanelDetails.PropertyName = "ImageURL";
                         editUserHandlePropertyPanelDetails.PropertyValue = (node.Shape as ImageShape).Source;
                         editUserHandlePropertyPanelDetails.IsChecked = true;
-                        tooltipValue += "<tr><td>" + editUserHandlePropertyPanelDetails.PropertyName + "</td><td>:</td><td>" + editUserHandlePropertyPanelDetails.PropertyValue + "</td></tr><tr>";
                         textBoxValues.Add(editUserHandlePropertyPanelDetails.PropertyName, editUserHandlePropertyPanelDetails.PropertyValue);
                         checkBoxValues.Add(editUserHandlePropertyPanelDetails.PropertyName, editUserHandlePropertyPanelDetails.IsChecked);
                         originalDictionaryTextBoxValues.Add(editUserHandlePropertyPanelDetails.PropertyName, editUserHandlePropertyPanelDetails.PropertyValue);
@@ -566,7 +579,6 @@
                     orgChartPropertyContainer.OriginalTextBoxValuesDictionary.Add(node.ID, originalDictionaryTextBoxValues);
                     orgChartPropertyContainer.OriginalCheckBoxValuesDictionary.Add(node.ID, originalDictionaryCheckBoxValues);
                     orgChartPropertyContainer.DeleteDictionary.Add(node.ID, deleteInformation);
-                    node.Tooltip = new DiagramTooltip() { Template = "<table" + " style=" + width + ">" + tooltipValue + "</table>", Position = Syncfusion.Blazor.Popups.Position.BottomCenter };
 
 
                 }
@@ -613,7 +625,6 @@
                 if (data != null && !orgChartPropertyContainer.IsAddNode)
                 {
                     string image=(node.Shape is ImageShape)?(node.Shape as ImageShape).Source:"";
-                    node.Tooltip = new DiagramTooltip() { Template = "<table" + " style=" + width + "><tr><td>Name</td><td>:</td><td>" + data.Name + "</td></tr><tr><td>Role</td><td>:</td><td>" + data.Role + "</td></tr><tr><td>Email</td><td>:</td><td>" + data.Email + "</td></tr><tr><td>Department</td><td>:</td><td>" + data.Department + "</td></tr><tr><td>EmployeeID</td><td>:</td><td>" + data.EmployeeID + "</td></tr><tr><td>SupervisorID</td><td>:</td><td>" + data.SupervisorID + "</td></tr><tr><td>SupervisorName</td><td>:</td><td>" + data.SupervisorName + "</td></tr><tr><td>Location</td><td>:</td><td>" + data.Location + "</td></tr><tr><td>Phone</td><td>:</td><td>" + data.Phone + "</td></tr><tr><td>ImageURL</td><td>:</td><td>" + image + "</td></tr></table>", Position = Syncfusion.Blazor.Popups.Position.BottomCenter };
                 }
                 Dictionary<string, object> properties = new Dictionary<string, object>();
                 Dictionary<string, string> textBoxValues = new Dictionary<string, string>();
@@ -656,6 +667,8 @@
                 annotation.Constraints = AnnotationConstraints.ReadOnly;
             }
             node.Constraints = NodeConstraints.Default | NodeConstraints.Tooltip;
+            node.Tooltip = new DiagramTooltip() { Position = Syncfusion.Blazor.Popups.Position.BottomCenter };
+
             if (node.AdditionalInfo != null)
             {
                 node.AdditionalInfo.Clear();
@@ -828,7 +841,7 @@
             {
                 if (Diagram.SelectionSettings.Nodes.Count == 1)
                 {
-                   
+
                     Diagram.SelectionSettings.UserHandles[0].Visible = true;
                     Diagram.SelectionSettings.UserHandles[1].Visible = true;
                     if (Diagram.SelectionSettings.Nodes[0].ID == "rootNode")
@@ -839,7 +852,7 @@
                     {
                         Diagram.SelectionSettings.UserHandles[2].Visible = true;
                     }
-                   
+
 
                 }
                 else
@@ -947,7 +960,7 @@
     /// </summary>
     /// <param name="alignment">The alignment type (e.g., Align Left, Align Right, Align Center, etc.).</param>
     public async Task UpdateAlignment(string alignment)
-    {        
+    {
         SfDiagramComponent diagram = Parent.DiagramContent.Diagram;
         diagram.BeginUpdate();
         switch (alignment)
@@ -1168,7 +1181,7 @@
             options.Orientation = Parent.OrgChartPropertyPanel.SubTreeOrientation;
             options.AlignmentType = Parent.OrgChartPropertyPanel.SubTreeAlignment;
         }
-        return options;  
+        return options;
     }
 
     /// <summary>
