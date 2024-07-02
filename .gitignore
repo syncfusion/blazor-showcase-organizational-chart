@@ -1,8 +1,4 @@
-Server/OrganizationalChart/bin
-Server/OrganizationalChart/obj
-WASM/OrganizationalChart//bin
-WASM/OrganizationalChart//obj
-Common/BlazorServerCommon_NET6/bin
-Common/BlazorWasmCommon_NET6/obj
-.vs/
+**/.vs/
 .git/
+**/bin/
+**/obj
