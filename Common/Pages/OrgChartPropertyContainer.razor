@@ -1034,7 +1034,7 @@
         OriginalTextBoxValuesDictionary.Add(nodeid, TextValues);
         dialogVisibility = false;
         textboxValue = "";
-        await this.Parent.DiagramContent.Diagram.DoLayout();
+        await this.Parent.DiagramContent.Diagram.DoLayoutAsync();
     }
     /// <summary>
     /// Update the style of the annotations for a given node.
@@ -1966,9 +1966,9 @@
         }
 
 
-        await this.Parent.DiagramContent.Diagram.AddDiagramElements(NodeCollection);
+        await this.Parent.DiagramContent.Diagram.AddDiagramElementsAsync(NodeCollection);
 
-        await this.Parent.DiagramContent.Diagram.DoLayout();
+        await this.Parent.DiagramContent.Diagram.DoLayoutAsync();
         StateHasChanged();
         this.Parent.StateChanged();
         IsUploderFirstTime = false;
@@ -2465,8 +2465,8 @@
             nodeBases.Add(connector);
         }
 
-        await Diagram.AddDiagramElements(nodeBases);
-        await Diagram.DoLayout();
+        await Diagram.AddDiagramElementsAsync(nodeBases);
+        await Diagram.DoLayoutAsync();
         nodess.Clear();
         connectors.Clear();
     }
@@ -2482,7 +2482,7 @@
         else
         {
             diagram.Redo();
-            await diagram.DoLayout();
+            await diagram.DoLayoutAsync();
         }
         if (diagram.SelectionSettings.Nodes.Count == 0)
         {
@@ -2529,8 +2529,8 @@
         patternValue = "vertical-alternate";
         SubTreeOrientation = Syncfusion.Blazor.Diagram.Orientation.Vertical;
         SubTreeAlignment = SubTreeAlignmentType.Alternate;
-        await Diagram.EndUpdate();
-        await Diagram.DoLayout();
+        await Diagram.EndUpdateAsync();
+        await Diagram.DoLayoutAsync();
     }
     /// <summary>
     /// Changes the organization chart pattern to "vertical-left" and updates the diagram accordingly.
@@ -2542,8 +2542,8 @@
         patternValue = "vertical-left";
         SubTreeOrientation = Syncfusion.Blazor.Diagram.Orientation.Vertical;
         SubTreeAlignment = SubTreeAlignmentType.Left;
-        await Diagram.EndUpdate();
-        await Diagram.DoLayout();
+        await Diagram.EndUpdateAsync();
+        await Diagram.DoLayoutAsync();
     }
     /// <summary>
     /// Changes the organization chart pattern to "vertical-right" and updates the diagram accordingly.
@@ -2555,8 +2555,8 @@
         patternValue = "vertical-right";
         SubTreeOrientation = Syncfusion.Blazor.Diagram.Orientation.Vertical;
         SubTreeAlignment = SubTreeAlignmentType.Right;
-        await Diagram.EndUpdate();
-        await Diagram.DoLayout();
+        await Diagram.EndUpdateAsync();
+        await Diagram.DoLayoutAsync();
     }
     /// <summary>
     /// Changes the organization chart pattern to "horizontal-center" and updates the diagram accordingly.
@@ -2568,8 +2568,8 @@
         patternValue = "horizontal-center";
         SubTreeOrientation = Syncfusion.Blazor.Diagram.Orientation.Horizontal;
         SubTreeAlignment = SubTreeAlignmentType.Center;
-        await Diagram.EndUpdate();
-        await Diagram.DoLayout();
+        await Diagram.EndUpdateAsync();
+        await Diagram.DoLayoutAsync();
     }
     /// <summary>
     /// Changes the organization chart pattern to "horizontal-right" and updates the diagram accordingly.
@@ -2581,8 +2581,8 @@
         patternValue = "horizontal-right";
         SubTreeOrientation = Syncfusion.Blazor.Diagram.Orientation.Horizontal;
         SubTreeAlignment = SubTreeAlignmentType.Right;
-        await Diagram.EndUpdate();
-        await Diagram.DoLayout();
+        await Diagram.EndUpdateAsync();
+        await Diagram.DoLayoutAsync();
     }
     /// <summary>
     /// Changes the organization chart pattern to "horizontal-left" and updates the diagram accordingly.
@@ -2594,8 +2594,8 @@
         patternValue = "horizontal-left";
         SubTreeOrientation = Syncfusion.Blazor.Diagram.Orientation.Horizontal;
         SubTreeAlignment = SubTreeAlignmentType.Left;
-        await Diagram.EndUpdate();
-        await Diagram.DoLayout();
+        await Diagram.EndUpdateAsync();
+        await Diagram.DoLayoutAsync();
     }
     /// <summary>
     /// Changes the parent node of the selected node in the organization chart.
@@ -2622,7 +2622,7 @@
             diagram.Select(new ObservableCollection<IDiagramObject>() { node });
 
         }
-        await diagram.DoLayout();
+        await diagram.DoLayoutAsync();
     }
     /// <summary>
     /// Moves the selected node to the same level as its parent in the organization chart.
@@ -2979,13 +2979,13 @@
             UpdateAnnotationStyle(node);
             UpdateAnnotationPosition(node);
             connector.Constraints = ConnectorConstraints.PointerEvents | ConnectorConstraints.Select | ConnectorConstraints.Delete;
-            await diagram.AddDiagramElements(new DiagramObjectCollection<NodeBase>() { node, connector });
+            await diagram.AddDiagramElementsAsync(new DiagramObjectCollection<NodeBase>() { node, connector });
 
             var node1 = GetNode(diagram.Nodes, node.ID);
             diagram.EndGroupAction();
-            await diagram.DoLayout();
+            await diagram.DoLayoutAsync();
             diagram.Select(new ObservableCollection<IDiagramObject>() { node1 });
-            await diagram.EndUpdate();
+            await diagram.EndUpdateAsync();
             IsAddNode = false;
         }
 
@@ -3021,9 +3021,9 @@
             diagram.BeginUpdate();
             diagram.StartGroupAction();
             await RemoveSubChild(diagram.SelectionSettings.Nodes[0], diagram);
-            await diagram.DoLayout();
+            await diagram.DoLayoutAsync();
             diagram.EndGroupAction();
-            await diagram.EndUpdate();
+            await diagram.EndUpdateAsync();
         }
     }
 
