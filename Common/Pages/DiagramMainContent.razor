@@ -951,7 +951,7 @@
             HorizontalSpacing = value;
         else if (type == "Vertical")
             VerticalSpacing = value;
-        await diagram.EndUpdateAsync();
+        await diagram.EndUpdate();
     }
     /// <summary>
     /// Updates the alignment of nodes in the diagram based on the provided alignment type.
@@ -982,7 +982,7 @@
                 verticalAlignment = VerticalAlignment.Bottom;
                 break;
         }
-        await diagram.EndUpdateAsync();
+        await diagram.EndUpdate();
     }
     /// <summary>
     /// Determines whether this custom command can be executed or not.
@@ -1084,7 +1084,7 @@
                 {
                     Diagram.EndGroupAction();
                 }
-                await Diagram.EndUpdateAsync();
+                await Diagram.EndUpdate();
             }
             if (obj.Name == "cut")
             {
@@ -1129,7 +1129,7 @@
                 {
                     Diagram.EndGroupAction();
                 }
-                await Diagram.EndUpdateAsync();
+                await Diagram.EndUpdate();
             }
             if (obj.Name == "paste")
             {
