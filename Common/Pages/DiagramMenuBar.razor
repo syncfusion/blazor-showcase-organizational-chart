@@ -477,7 +477,7 @@
                     {
                         diagram.EndGroupAction();
                     }
-                    await diagram.EndUpdateAsync();
+                    await diagram.EndUpdate();
                     break;
                 case "duplicate":
                     Edit = true;
@@ -536,7 +536,7 @@
                     view = true;
                     diagram.BeginUpdate();
                     Parent.DiagramContent.SnapConstraint = Parent.DiagramContent.SnapConstraint ^ SnapConstraints.ShowLines;
-                    await diagram.EndUpdateAsync();
+                    await diagram.EndUpdate();
                     ViewMenuItems[5].IconCss = ViewMenuItems[5].IconCss == "sf-icon-blank" ? "sf-icon-Selection" : "sf-icon-blank";
                     break;
                 case "snaptogrid":
@@ -606,12 +606,12 @@
                 },
                 Shape = new BasicShape() { Shape = NodeBasicShapes.Rectangle, CornerRadius = 10, Type = NodeShapes.Basic },
             };
-        await diagram.AddDiagramElementsAsync(new DiagramObjectCollection<NodeBase>() { node });
+        await diagram.AddDiagramElements(new DiagramObjectCollection<NodeBase>() { node });
         diagram.Select(new ObservableCollection<IDiagramObject>() { diagram.Nodes[0] });
         diagram.ClearHistory();
         diagram.BeginUpdate();
         Parent.DiagramContent.SnapConstraint = SnapConstraints.None;
-        await diagram.EndUpdateAsync();
+        await diagram.EndUpdate();
         diagram.ResetZoom();
         ViewMenuItems[7].IconCss = "sf-icon-blank";
         WindowMenuItems[2].IconCss = "sf-icon-Remove";
@@ -784,7 +784,7 @@
             await Task.Delay(100);
             string json = await FileUtil.LoadFile(jsRuntime, args.FileData);
             json = json.Replace(System.Environment.NewLine, string.Empty);
-            await Parent.DiagramContent.Diagram.LoadDiagramAsync(json.ToString());
+            await Parent.DiagramContent.Diagram.LoadDiagram(json.ToString());
         }
         else
         {
@@ -792,7 +792,7 @@
             Node Node = Diagram.SelectionSettings.Nodes[0];
             Diagram.BeginUpdate();
             Node.Shape = new ImageShape() { Type = NodeShapes.Image, Source = args.FileData.RawFile.ToString() };
-           await Diagram.EndUpdateAsync();
+           await Diagram.EndUpdate();
         }
     }
     /// <summary>
