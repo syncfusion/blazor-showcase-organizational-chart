@@ -1,4 +1,4 @@
-# Essential Studio for Blazor - Organizational chart
+# Essential Studio&reg; for Blazor - Organizational chart
 
 An organizational chart visually outlines an organization's hierarchy and relationships. It clarifies reporting lines and departmental roles, fostering transparency and collaboration. This chart aids in understanding the structure and facilitates effective communication within the organization.
 
