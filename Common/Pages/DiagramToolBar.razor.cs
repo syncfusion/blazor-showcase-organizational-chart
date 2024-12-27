@@ -244,7 +244,7 @@ namespace OrganizationalChart
                     await removeSelectedToolbarItem(commandType).ConfigureAwait(true);
                 }
             }
-           //await Parent.DiagramContent.Diagram.DoLayout();
+           //await Parent.DiagramContent.Diagram.DoLayoutAsync();
             //Parent.DiagramPropertyPanel.PanelVisibility();
             //Parent.DiagramContent.StateChanged();
         }
@@ -304,11 +304,11 @@ namespace OrganizationalChart
                         Parent.DiagramContent.Diagram.BeginUpdate();
                         Parent.DiagramContent.Diagram.Width = dataObj.Width + "px";
                         Parent.DiagramContent.Diagram.Height = dataObj.Height + "px";
-                        Parent.DiagramContent.Diagram.EndUpdate();
+                        Parent.DiagramContent.Diagram.EndUpdateAsync();
                     }
 
                 }
-                await Parent.DiagramContent.Diagram.DoLayout();
+                await Parent.DiagramContent.Diagram.DoLayoutAsync();
             }
             Parent.MenuBar.StateChanged();
             Parent.DiagramContent.StateChanged();
