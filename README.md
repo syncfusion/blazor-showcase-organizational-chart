@@ -1,3 +1,5 @@
+[![.NET](https://github.com/ArunKumar-SF3979/blazor-showcase-organizational-chart/actions/workflows/dotnet.yml/badge.svg)](https://github.com/ArunKumar-SF3979/blazor-showcase-organizational-chart/actions/workflows/dotnet.yml)
+
 # Essential Studio&reg; for Blazor - Organizational chart
 
 An organizational chart visually outlines an organization's hierarchy and relationships. It clarifies reporting lines and departmental roles, fostering transparency and collaboration. This chart aids in understanding the structure and facilitates effective communication within the organization.
