@@ -959,36 +959,8 @@
                     UpdateAnnotationStyle(node);
                     string id = "width: 100%;";
                     UpdateAnnotationPosition(node);
-                    if (node.Data == null && !IsUploader)
-                    {
-                        node.Tooltip = new DiagramTooltip()
-                            {
-                                Template = "<table" + " style=" + id + ">" + tooltipFinalContent + "</table>",
-                            };
-                    }
-                    else
-                    {
-                        if (node.Data != null)
-                        {
-                            OrgChartDetails data = node.Data as OrgChartDetails;
-
-                            node.Tooltip = new DiagramTooltip()
-                                {
-                                    Template = "<table" + " style=" + id + "><tr><td>Name</td><td>:</td><td>" + data.Name + "</td></tr><tr><td>Role</td><td>:</td><td>" + data.Role + "</td></tr><tr><td>Email</td><td>:</td><td>" + data.Email + "</td></tr><tr><td>Department</td><td>:</td><td>" + data.Department + "</td></tr><tr><td>EmployeeID</td><td>:</td><td>" + data.EmployeeID + "</td></tr><tr><td>SupervisorID</td><td>:</td><td>" + data.SupervisorID + "</td></tr><tr><td>SupervisorName</td><td>:</td><td>" + data.SupervisorName + "</td></tr><tr><td>Location</td><td>:</td><td>" + data.Location + "</td></tr><tr><td>Phone</td><td>:</td><td>" + data.Phone + "</td></tr><tr><td>ImageURL</td><td>:</td><td>" + data.ImageURL + "</td></tr></table>",
-
-                                };
-                        }
-                    }
-
                     if (tooltipFinalContent.ToString() != "")
                     {
-                        if (IsUploader && node.Data == null)
-                        {
-                            node.Tooltip = new DiagramTooltip()
-                                {
-                                    Template = "<table" + " style=" + id + ">" + tooltipFinalContent + "</table>",
-                                };
-                        }
                         node.Constraints = NodeConstraints.Default | NodeConstraints.Tooltip;
                     }
                     else
@@ -2325,7 +2297,7 @@
                         }
                     }
                 }
-                node.Tooltip = new DiagramTooltip() { Template = "<table" + " style=" + width + ">" + templates + "</table>", Position = Syncfusion.Blazor.Popups.Position.BottomCenter };
+                node.Tooltip = new DiagramTooltip() { Position = Syncfusion.Blazor.Popups.Position.BottomCenter };
                 UpdateAnnotationStyle(node);
 
                 node.Constraints = NodeConstraints.Default | NodeConstraints.Tooltip;
@@ -2453,7 +2425,7 @@
                 {
                     (node.Data as OrgChartDetails).ImageURL = (node.Shape is ImageShape) ? (node.Shape as ImageShape).Source : "";
                 }
-                node.Tooltip = new DiagramTooltip() { Template = "<table" + " style=" + width + ">" + templatesValue + "</table>", Position = Syncfusion.Blazor.Popups.Position.BottomCenter };
+                node.Tooltip = new DiagramTooltip() {Position = Syncfusion.Blazor.Popups.Position.BottomCenter };
                 node.Constraints = NodeConstraints.Default | NodeConstraints.Tooltip;
 
             }
@@ -2956,7 +2928,7 @@
 
             node.Constraints = NodeConstraints.Default | NodeConstraints.Tooltip;
             string width = "width: 100%;";
-            node.Tooltip = new DiagramTooltip() { Template = "<table" + " style=" + width + ">" + tooltip + "</table>", Position = Syncfusion.Blazor.Popups.Position.BottomCenter };
+            node.Tooltip = new DiagramTooltip() { Position = Syncfusion.Blazor.Popups.Position.BottomCenter };
             Connector connector = new Connector()
                 {
                     ID = "Connector" + Parent.DiagramContent.RandomId(),
