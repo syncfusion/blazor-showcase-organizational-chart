@@ -8,7 +8,7 @@ An organizational chart visually outlines an organization's hierarchy and relati
 
 * [System requirements](https://blazor.syncfusion.com/documentation/system-requirements/)
 
-* [NET 8 WebAssembly Workload](https://learn.microsoft.com/en-us/aspnet/core/blazor/webassembly-build-tools-and-aot?view=aspnetcore-8.0#net-webassembly-build-tools)
+* [NET 10 WebAssembly Workload](https://learn.microsoft.com/en-us/aspnet/core/blazor/webassembly-build-tools-and-aot?view=aspnetcore-10.0#net-webassembly-build-tools)
 
 ## How to run the demo
 
@@ -22,10 +22,10 @@ Clone the repository.This repository contains Blazor Organizational chart Server
 * Open the command prompt from the demo's directory.
 * Run the demo using the following command.
    
-   To run .NET 8 Organizational chart Server project
+   To run .NET 10 Organizational chart Server project
    > `dotnet run --project Server/OrganizationalChart.sln`
 
-   To run .NET 8 Organizational chart WASM project
+   To run .NET 10 Organizational chart WASM project
    > `dotnet run --project Wasm/OrganizationalChart.sln`
 
 ### Run the demo using Visual Studio
