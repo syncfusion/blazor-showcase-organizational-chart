@@ -46,16 +46,16 @@
     <link rel="icon" type="image/x-icon" href="favicon.ico">
     <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" />
     <link href='https://fonts.googleapis.com/css?family=Roboto' rel='stylesheet'>
-    <link href="_content/Syncfusion.Blazor/styles/fluent.css" rel="stylesheet" />
-    <link href="assets/db-icons1/style.css" rel="stylesheet" />
-    <link href="assets/dbstyle/diagrambuilder.css" rel="stylesheet" />
-    <script src="_content/BlazorServerCommon_NET8/interop.js"></script>
-    <script src="_content/Syncfusion.Blazor/scripts/syncfusion-blazor.min.js"></script>
-    <HeadOutlet @rendermode="@InteractiveServer" />
+    <link href="_content/Syncfusion.Blazor/styles/fluent2.css" rel="stylesheet" />
+    <link href="@Assets["assets/db-icons1/style.css"]" rel="stylesheet" />
+    <link href="@Assets["assets/dbstyle/diagrambuilder.css"]" rel="stylesheet" />
+    <script src="@Assets["_content/BlazorServerCommon_NET10/interop.js"]"></script>
+    <script src="@Assets["_content/Syncfusion.Blazor/scripts/syncfusion-blazor.min.js"]"></script>
+    <HeadOutlet @rendermode="InteractiveServer" />
 </head>
 
 <body>
-    <Routes @rendermode="@InteractiveServer" />
+    <Routes @rendermode="InteractiveServer" />
     <!-- Google Tag Manager (noscript) -->
     <!--Page Load-->
     <noscript>
@@ -74,7 +74,7 @@
 
         </environment>
     </div>
-    <script src="_framework/blazor.web.js"></script>
+    <script src="@Assets["_framework/blazor.web.js"]"></script>
 </body>
 
 </html>
