@@ -847,7 +847,7 @@ html, body {
 }
 
 .e-dialog .e-dlg-header-content {
-    height: 36px;
+    height: 46px;
     padding: 9.5px 4px 9.5px 16px;
     border-bottom: 1px solid #D5D5D5;
 }
@@ -1317,23 +1317,37 @@ button, input, select, textarea, .e-control.e-dropdownlist .e-input-group.e-ddl 
     margin-bottom: 8px;
 }
 
+    .db-custom-prop-info-template .row {
+        display: flex;
+        align-items: center;
+        width: 100%;
+    }
+
     .db-custom-prop-info-template .propertyNameDiv {
-        width: 30%;
+        width: 15%;
         text-overflow: ellipsis;
         overflow: hidden;
-        text-align: right;
-        padding-top: 8px;
+        text-align: center;
+        padding-right: 8px;
+        padding-top: 12px;
+        display: flex;
+        align-items: center;
+        height: 36px;
     }
 
     .db-custom-prop-info-template .propertyValueDiv {
-        width: calc(60% - 10px);
+        width: calc(65% - 10px);
+        display: flex;
+        align-items: center;
+        height: 36px;
     }
 
     .db-custom-prop-info-template .propertyLabelDiv {
-        float: left;
-        width: 5%;
-        height: 20px;
-        padding-top: 4px;
+        flex: 0 0 auto;
+        width: auto;
+        height: 36px;
+        display: flex;
+        align-items: center;
     }
 
 #customPropertyDialog .e-dlg-content .btnRemoveProperty {
@@ -1356,10 +1370,12 @@ button, input, select, textarea, .e-control.e-dropdownlist .e-input-group.e-ddl 
     }
 
 .propertyTooltipDiv {
-    width: 5%;
-    float: left;
-    margin-left: 10px;
-    padding-top: 5px;
+    flex: 0 0 auto;
+    width: auto;
+    margin-left: 8px;
+    display: flex;
+    align-items: center;
+    height: 36px;
 }
 
     .propertyTooltipDiv .e-checkbox-wrapper .e-frame {
@@ -1384,9 +1400,7 @@ button, input, select, textarea, .e-control.e-dropdownlist .e-input-group.e-ddl 
 }
 .db-custom-prop-info-template .propertyLabelDiv {
     float: left;
-    width: 5%;
     height: 20px;
-    padding-top: 4px;
 }
 #sendButton {
     top: 2px;

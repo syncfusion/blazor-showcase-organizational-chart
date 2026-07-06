@@ -24,10 +24,10 @@
         Organization Settings
     </div>
     <div class="row db-prop-row">
-        <div class="col-xs-8 db-col-right db-prop-text-style" style="padding-top: 14px;">
+        <div class="col-xs-7 db-col-right db-prop-text-style" style="padding-top: 14px;">
             <span class="db-prop-text-style">Horizontal Spacing</span>
         </div>
-        <div class="col-xs-4 db-col-left" style="padding-top: 10px">
+        <div class="col-xs-5 db-col-left" style="padding-top: 10px">
             <SfNumericTextBox TValue="int?" Width="100%" @bind-Value="@horizontalValue" Min="20" Step="2" Format="###.##">
                 <NumericTextBoxEvents TValue="int?" ValueChange="OnHorizontalSpaceChange"></NumericTextBoxEvents>
             </SfNumericTextBox>
@@ -35,10 +35,10 @@
     </div>
 
     <div class="row db-prop-row" >
-        <div class="col-xs-8 db-col-right db-prop-text-style" style="padding-top: 14px;">
+        <div class="col-xs-7 db-col-right db-prop-text-style" style="padding-top: 14px;">
             <span class="db-prop-text-style">Vertical Spacing</span>
         </div>
-        <div class="col-xs-4 db-col-left" style="padding-top: 10px;">
+        <div class="col-xs-5 db-col-left" style="padding-top: 10px;">
             <SfNumericTextBox TValue="int?" Width="100%" @bind-Value="@verticalValue" Min="20" Step="2" Format="###.##">
                 <NumericTextBoxEvents TValue="int?" ValueChange="OnVerticalSpaceChange"></NumericTextBoxEvents>
             </SfNumericTextBox>
@@ -321,7 +321,7 @@
                                                         string checkboxId = "Checkbox" + Checkbox;
                                                         <div class="db-custom-prop-info-template" id="customPropertyDialog" style="">
                                                             <div class="row">
-                                                                <div class="col-xs-6 db-col-left propertyNameDiv" style="margin-bottom:10px;display:@textboxDisplayProperty">@textBox</div>
+                                                                <div class="col-xs-6 db-col-left propertyNameDiv" style="margin-bottom:10px;padding-left: 8px;display:@textboxDisplayProperty">@textBox</div>
                                                                 <div class="col-xs-6 db-col-right propertyValueDiv">
                                                                     <SfTextBox CssClass="e-outline" Value="@textBoxValue" ID="@textId" ValueChange="(args)=>TextBoxValueChangeHandler(args,textId)"></SfTextBox>
                                                                 </div>
@@ -360,9 +360,9 @@
                     }
                     @if (this.Parent.DiagramContent.Diagram.SelectionSettings.Nodes.Count == 1 && this.Parent.DiagramContent.Diagram.SelectionSettings.Nodes[0].Data == null && !IsUploader)
                     {
-                        <div class="db-custom-prop-template" style="">
+                        <div class="db-custom-prop-info-template" style="">
                             <div class="row">
-                                <div class="col-xs-6 db-col-left" style="width:70%">
+                                <div class="col-xs-6 db-col-left" style="width:70%;padding-top: 8px;padding-left: 10px">
                                     <SfTextBox @ref="addPropertyTextBox" CssClass="e-outline" Placeholder="Enter Property Name" ValueChanged="@AddproertyValueChangeHandler"></SfTextBox>
                                 </div>
 
@@ -959,6 +959,7 @@
                     UpdateAnnotationStyle(node);
                     string id = "width: 100%;";
                     UpdateAnnotationPosition(node);
+
                     if (tooltipFinalContent.ToString() != "")
                     {
                         node.Constraints = NodeConstraints.Default | NodeConstraints.Tooltip;
@@ -2425,7 +2426,7 @@
                 {
                     (node.Data as OrgChartDetails).ImageURL = (node.Shape is ImageShape) ? (node.Shape as ImageShape).Source : "";
                 }
-                node.Tooltip = new DiagramTooltip() {Position = Syncfusion.Blazor.Popups.Position.BottomCenter };
+                node.Tooltip = new DiagramTooltip() { Position = Syncfusion.Blazor.Popups.Position.BottomCenter };
                 node.Constraints = NodeConstraints.Default | NodeConstraints.Tooltip;
 
             }
